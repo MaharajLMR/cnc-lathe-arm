@@ -1,0 +1,25 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Selection
+    Name: Selection
+  - Class: moveit_rviz_plugin/MotionPlanning
+    Name: MotionPlanning
+
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: moveit_rviz_plugin/MotionPlanning
+      Name: MotionPlanning
+      Robot Description: robot_description
+      Move Group Namespace: ""
+      Planning Group: arm
+      Planning Scene Topic: /monitored_planning_scene
+
+  Global Options:
+    Background Color: 48; 48; 48
+    Frame Rate: 30
+
+Window Geometry:
+  Width: 1280
+  Height: 800
