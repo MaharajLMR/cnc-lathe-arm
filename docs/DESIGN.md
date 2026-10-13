@@ -125,11 +125,12 @@ waypoints:
 
 | # | Name | Done? |
 |---|---|---|
-| M0 | Repo structure + DESIGN.md | ✓ |
-| M1 | URDF built from Maharaj's dimensions | needs dimensions |
-| M2 | MoveIt 2 planning + Gazebo sim runs | needs M1 |
-| M3 | Load/unload cycle measured (cycle time) | needs M2 |
-| M4 | Teach mode: record + replay working | ✓ code written |
+| M0 | Repo structure + DESIGN.md + teach mode (4/4 tests pass) | ✓ |
+| M1b | Pure-Python FK + Jacobian + workspace analysis (14/14 tests pass) | ✓ |
+| M2 | MoveIt 2 config: SRDF, kinematics.yaml, OMPL, controllers, launch | ✓ |
+| M1 | URDF with real dimensions | **needs Maharaj's measurements** |
+| M3 | Load/unload cycle in Gazebo + cycle time | needs M1 + ros2-control |
+| M4 | Teach mode end-to-end in sim | needs M3 |
 | M5 | Firmware + BOM section complete | needs Maharaj's files |
 | M6 | RANE competition photos added | needs Maharaj's photos |
-| M7 | CI green + README complete | needs M1–M3 |
+| M7 | CI green + README complete | needs M1–M4 |

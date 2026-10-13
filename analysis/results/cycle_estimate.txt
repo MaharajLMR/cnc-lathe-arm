@@ -1,0 +1,19 @@
+5-DOF Lathe Arm — Cycle Time Estimate
+=======================================================
+v_max=0.8 m/s  a_max=3.0 m/s²  dwell=0.2 s/waypoint
+(placeholder dimensions — update after real measurements)
+
+Segment                    Dist (m)  Move (s)  Total (s)
+---------------------------------------------------------
+home→approach_part           0.0931     0.352      0.552
+approach_part→grasp_part     0.0250     0.183      0.383
+grasp_part→lift              0.0747     0.316      0.516
+lift→approach_chuck          0.6724     1.107      1.307
+approach_chuck→insert        0.0125     0.129      0.329
+insert→retract               0.0125     0.129      0.329
+retract→home                 0.6916     1.131      1.331
+---------------------------------------------------------
+Estimated cycle time                               4.747 s
+
+Note: 'home' waypoint is singular (arm fully extended along X).
+      Design a non-zero home if this is a robot restart position.

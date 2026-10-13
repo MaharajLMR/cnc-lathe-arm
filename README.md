@@ -20,7 +20,8 @@
 | Workspace sampled (40,000 configs) | X ∈ [−0.37, 0.63] m, Z ∈ [−0.48, 0.78] m | `analysis/workspace_map.py` |
 | Max theoretical reach | 0.75 m | L1+L2+L3+L4+L5 |
 | Near-singular waypoints (μ < 0.01) | 2 / 8 (home) | `analysis/workspace_map.py` |
-| Load/unload cycle time (sim) | — s | record rosbag after M3 |
+| Estimated load/unload cycle time (placeholder dims) | **4.75 s** | `analysis/cycle_time_estimator.py` |
+| Load/unload cycle time (sim, real dims) | — s | record rosbag after M3 |
 
 ---
 
@@ -82,6 +83,7 @@ pytest tests/test_teach_replay.py -v          # 4 tests: waypoint validity + rou
 # FK analysis (no ROS required)
 python3 analysis/fk_kinematics.py             # FK demo + manipulability spot-check
 python3 analysis/workspace_map.py             # 40k-sample workspace sweep → 3 PNGs
+python3 analysis/cycle_time_estimator.py      # cycle time estimate → cycle_estimate.png
 
 # MoveIt 2 visualisation (needs ROS 2 + MoveIt installed)
 ros2 launch lathe_arm_moveit moveit.launch.py
