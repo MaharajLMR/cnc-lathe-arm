@@ -76,13 +76,13 @@ def test_all_waypoints_have_5_joints():
 
 def test_joint_angles_within_limits():
     """All example waypoint angles are within the URDF limits."""
-    # URDF limits (radians): j1=[-1.57,1.57], j2=[-1.57,1.57],
-    #                        j3=[-2.09,2.09], j4=[-1.57,1.57], j5=[-3.14,3.14]
+    # URDF limits (radians): j1=[-1.57,+1.57], j2=[-1.0,+1.9],
+    #                        j3=[-2.1,+0.2], j4=[-1.57,+1.57], j5=[-π,+π]
     limits = [
-        (-1.571, 1.571),
-        (-1.571, 1.571),
-        (-2.094, 2.094),
-        (-1.571, 1.571),
+        (-1.5708,  1.5708),
+        (-1.0,     1.9),
+        (-2.1,     0.2),
+        (-1.5708,  1.5708),
         (-3.14159, 3.14159),
     ]
     path = Path(__file__).parent.parent / \

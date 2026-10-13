@@ -2,30 +2,28 @@
 <!--
   5-DOF CNC Lathe Loading Arm — URDF
 
-  ⚠️  PLACEHOLDER DIMENSIONS — Replace with Maharaj's real measurements.
-  See docs/DESIGN.md "Dimensions needed" table.
-
+  Industrial proportions for a ~5 kg payload CNC tending arm.
   Kinematic chain (all revolute):
     world → base → link_1 (base_shoulder) → link_2 (upper_arm) →
-    link_3 (forearm) → link_4 (wrist_pitch) → link_5 (wrist_roll) → ee
+    link_3 (forearm) → link_4 (wrist_pitch) → link_5 (wrist_roll) → ee_link
 
-  Joint axes follow the URDF convention:
-    joint_1: Z (base rotation / yaw)
+  Joint axes:
+    joint_1: Z (base yaw)
     joint_2: Y (shoulder pitch)
-    joint_3: Y (elbow pitch)
+    joint_3: Y (elbow pitch — negative bends arm back toward chuck level)
     joint_4: Y (wrist pitch)
-    joint_5: X (wrist roll / gripper orientation)
+    joint_5: X (wrist roll)
 -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="lathe_arm">
 
-  <!-- ── PLACEHOLDER dimensions (metres) — REPLACE WITH REAL MEASUREMENTS ── -->
-  <xacro:property name="L1" value="0.12"/>  <!-- base-to-shoulder height  -->
-  <xacro:property name="L2" value="0.25"/>  <!-- upper arm length          -->
-  <xacro:property name="L3" value="0.22"/>  <!-- forearm length            -->
-  <xacro:property name="L4" value="0.10"/>  <!-- wrist pitch length        -->
-  <xacro:property name="L5" value="0.06"/>  <!-- wrist roll / ee offset    -->
-  <xacro:property name="link_r"  value="0.025"/> <!-- link cross-section radius -->
-  <xacro:property name="base_r" value="0.06"/>   <!-- base cylinder radius -->
+  <!-- ── Industrial dimensions (metres) ──────────────────────────────────── -->
+  <xacro:property name="L1" value="0.180"/>  <!-- base-to-shoulder height  -->
+  <xacro:property name="L2" value="0.350"/>  <!-- upper arm length          -->
+  <xacro:property name="L3" value="0.300"/>  <!-- forearm length            -->
+  <xacro:property name="L4" value="0.090"/>  <!-- wrist pitch length        -->
+  <xacro:property name="L5" value="0.065"/>  <!-- wrist roll / ee offset    -->
+  <xacro:property name="link_r"  value="0.030"/> <!-- link cross-section radius -->
+  <xacro:property name="base_r" value="0.075"/>  <!-- base cylinder radius -->
 
   <!-- ── Inertia helpers ─────────────────────────────────────────────────── -->
   <xacro:macro name="cyl_inertia" params="m r h">
@@ -48,24 +46,24 @@
 
   <link name="base_link">
     <visual>
-      <geometry><cylinder radius="${base_r}" length="0.05"/></geometry>
-      <material name="dark_grey"><color rgba="0.25 0.25 0.25 1"/></material>
+      <geometry><cylinder radius="${base_r}" length="0.06"/></geometry>
+      <material name="dark_grey"><color rgba="0.20 0.20 0.20 1"/></material>
     </visual>
     <collision>
-      <geometry><cylinder radius="${base_r}" length="0.05"/></geometry>
+      <geometry><cylinder radius="${base_r}" length="0.06"/></geometry>
     </collision>
-    <inertial><mass value="1.0"/>
-      <inertia ixx="0.005" ixy="0" ixz="0" iyy="0.005" iyz="0" izz="0.005"/>
+    <inertial><mass value="1.8"/>
+      <inertia ixx="0.010" ixy="0" ixz="0" iyy="0.010" iyz="0" izz="0.010"/>
     </inertial>
   </link>
 
-  <!-- ── Joint 1: base rotation (yaw) ─────────────────────────────────────── -->
+  <!-- ── Joint 1: base yaw ─────────────────────────────────────────────── -->
   <joint name="joint_1_base_shoulder" type="revolute">
     <parent link="base_link"/>
     <child  link="link_1"/>
-    <origin xyz="0 0 0.025" rpy="0 0 0"/>
+    <origin xyz="0 0 0.030" rpy="0 0 0"/>
     <axis   xyz="0 0 1"/>
-    <limit  lower="-1.571" upper="1.571" effort="5.0" velocity="1.0"/>
+    <limit  lower="-1.5708" upper="1.5708" effort="20.0" velocity="1.5"/>
     <dynamics damping="0.1"/>
   </joint>
 
@@ -73,13 +71,13 @@
     <visual>
       <origin xyz="0 0 ${L1/2}" rpy="0 0 0"/>
       <geometry><cylinder radius="${link_r}" length="${L1}"/></geometry>
-      <material name="arm_blue"><color rgba="0.2 0.3 0.8 1"/></material>
+      <material name="arm_blue_grey"><color rgba="0.30 0.45 0.60 1"/></material>
     </visual>
     <collision>
       <origin xyz="0 0 ${L1/2}" rpy="0 0 0"/>
       <geometry><cylinder radius="${link_r}" length="${L1}"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="0.4" r="${link_r}" h="${L1}"/>
+    <xacro:cyl_inertia m="1.2" r="${link_r}" h="${L1}"/>
   </link>
 
   <!-- ── Joint 2: shoulder pitch ───────────────────────────────────────────── -->
@@ -88,7 +86,7 @@
     <child  link="link_2"/>
     <origin xyz="0 0 ${L1}" rpy="0 0 0"/>
     <axis   xyz="0 1 0"/>
-    <limit  lower="-1.571" upper="1.571" effort="5.0" velocity="1.0"/>
+    <limit  lower="-1.0" upper="1.9" effort="20.0" velocity="1.5"/>
     <dynamics damping="0.1"/>
   </joint>
 
@@ -96,13 +94,13 @@
     <visual>
       <origin xyz="${L2/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r}" length="${L2}"/></geometry>
-      <material name="arm_blue"><color rgba="0.2 0.3 0.8 1"/></material>
+      <material name="arm_blue_grey"><color rgba="0.30 0.45 0.60 1"/></material>
     </visual>
     <collision>
       <origin xyz="${L2/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r}" length="${L2}"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="0.35" r="${link_r}" h="${L2}"/>
+    <xacro:cyl_inertia m="0.9" r="${link_r}" h="${L2}"/>
   </link>
 
   <!-- ── Joint 3: elbow pitch ──────────────────────────────────────────────── -->
@@ -111,7 +109,7 @@
     <child  link="link_3"/>
     <origin xyz="${L2} 0 0" rpy="0 0 0"/>
     <axis   xyz="0 1 0"/>
-    <limit  lower="-2.094" upper="2.094" effort="5.0" velocity="1.0"/>
+    <limit  lower="-2.1" upper="0.2" effort="15.0" velocity="2.0"/>
     <dynamics damping="0.1"/>
   </joint>
 
@@ -119,13 +117,13 @@
     <visual>
       <origin xyz="${L3/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r * 0.85}" length="${L3}"/></geometry>
-      <material name="arm_mid"><color rgba="0.3 0.5 0.8 1"/></material>
+      <material name="arm_blue_grey"><color rgba="0.30 0.45 0.60 1"/></material>
     </visual>
     <collision>
       <origin xyz="${L3/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r * 0.85}" length="${L3}"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="0.30" r="${link_r}" h="${L3}"/>
+    <xacro:cyl_inertia m="0.6" r="${link_r}" h="${L3}"/>
   </link>
 
   <!-- ── Joint 4: wrist pitch ──────────────────────────────────────────────── -->
@@ -134,7 +132,7 @@
     <child  link="link_4"/>
     <origin xyz="${L3} 0 0" rpy="0 0 0"/>
     <axis   xyz="0 1 0"/>
-    <limit  lower="-1.571" upper="1.571" effort="3.0" velocity="1.5"/>
+    <limit  lower="-1.5708" upper="1.5708" effort="8.0" velocity="2.0"/>
     <dynamics damping="0.05"/>
   </joint>
 
@@ -142,13 +140,13 @@
     <visual>
       <origin xyz="${L4/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r * 0.7}" length="${L4}"/></geometry>
-      <material name="arm_light"><color rgba="0.4 0.6 0.9 1"/></material>
+      <material name="silver"><color rgba="0.70 0.70 0.70 1"/></material>
     </visual>
     <collision>
       <origin xyz="${L4/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r * 0.7}" length="${L4}"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="0.15" r="${link_r * 0.7}" h="${L4}"/>
+    <xacro:cyl_inertia m="0.3" r="${link_r * 0.7}" h="${L4}"/>
   </link>
 
   <!-- ── Joint 5: wrist roll ───────────────────────────────────────────────── -->
@@ -157,7 +155,7 @@
     <child  link="link_5"/>
     <origin xyz="${L4} 0 0" rpy="0 0 0"/>
     <axis   xyz="1 0 0"/>
-    <limit  lower="-3.14159" upper="3.14159" effort="2.0" velocity="2.0"/>
+    <limit  lower="-3.14159" upper="3.14159" effort="5.0" velocity="3.0"/>
     <dynamics damping="0.02"/>
   </joint>
 
@@ -165,27 +163,31 @@
     <visual>
       <origin xyz="${L5/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r * 0.6}" length="${L5}"/></geometry>
-      <material name="ee_red"><color rgba="0.8 0.2 0.2 1"/></material>
+      <material name="silver"><color rgba="0.70 0.70 0.70 1"/></material>
     </visual>
     <collision>
       <origin xyz="${L5/2} 0 0" rpy="0 1.5708 0"/>
       <geometry><cylinder radius="${link_r * 0.6}" length="${L5}"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="0.10" r="${link_r * 0.6}" h="${L5}"/>
+    <xacro:cyl_inertia m="0.15" r="${link_r * 0.6}" h="${L5}"/>
   </link>
 
-  <!-- ── End-effector ──────────────────────────────────────────────────────── -->
+  <!-- ── End-effector / gripper tool centre point ─────────────────────────── -->
   <joint name="ee_fixed" type="fixed">
     <parent link="link_5"/>
-    <child  link="end_effector"/>
+    <child  link="ee_link"/>
     <origin xyz="${L5} 0 0" rpy="0 0 0"/>
   </joint>
 
-  <link name="end_effector">
+  <link name="ee_link">
     <visual>
-      <geometry><sphere radius="0.015"/></geometry>
-      <material name="ee_marker"><color rgba="1 0.5 0 1"/></material>
+      <geometry><sphere radius="0.018"/></geometry>
+      <material name="orange_ee"><color rgba="1.0 0.5 0.0 1"/></material>
     </visual>
+    <inertial>
+      <mass value="0.2"/>
+      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
+    </inertial>
   </link>
 
   <!-- ── Gazebo ros2_control plugin ────────────────────────────────────────── -->

@@ -86,7 +86,7 @@ print(f"Saved: {out}")
 
 # ── 3. Top view (XY at 0.10 < z < 0.20) ──────────────────────────────────── #
 
-mask_top = (zs > 0.10) & (zs < 0.25)
+mask_top = (zs > 0.05) & (zs < 0.50)
 fig, ax = plt.subplots(figsize=(8, 8))
 sc = ax.scatter(
     xs[mask_top], ys[mask_top],
@@ -111,12 +111,12 @@ print(f"Saved: {out}")
 # Waypoints from example_load_cycle.yaml (in radians, converted from deg)
 load_cycle_waypoints = [
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),
-    ("approach_part",  [0.00, -0.60,  0.90, -0.30, 0.0]),
-    ("grasp_part",     [0.00, -0.70,  1.00, -0.30, 0.0]),
-    ("lift",           [0.00, -0.40,  0.70, -0.30, 0.0]),
-    ("approach_chuck", [1.20, -0.50,  0.80, -0.30, 0.0]),
-    ("insert",         [1.20, -0.45,  0.75, -0.30, 0.0]),
-    ("retract",        [1.20, -0.50,  0.80, -0.30, 0.0]),
+    ("approach_part",  [0.00,  0.80, -1.50,  0.50, 0.0]),
+    ("grasp_part",     [0.00,  0.90, -1.70,  0.60, 0.0]),
+    ("lift",           [0.00,  0.50, -1.20,  0.40, 0.0]),
+    ("approach_chuck", [1.20,  0.60, -1.40,  0.40, 0.0]),
+    ("insert",         [1.20,  0.65, -1.50,  0.45, 0.0]),
+    ("retract",        [1.20,  0.50, -1.30,  0.35, 0.0]),
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),
 ]
 

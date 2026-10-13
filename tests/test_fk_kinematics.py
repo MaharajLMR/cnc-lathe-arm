@@ -59,10 +59,10 @@ def test_fk_rotation_is_orthogonal():
 
 
 def test_fk_home_position():
-    """At all-zero joints, EE should be at (L2+L3+L4+L5, 0, 0.025+L1)."""
+    """At all-zero joints, EE should be at (L2+L3+L4+L5, 0, 0.030+L1)."""
     x, y, z, r, p, yw = ee_xyz_rpy([0, 0, 0, 0, 0])
     expected_x = L2 + L3 + L4 + L5
-    expected_z = 0.025 + L1
+    expected_z = 0.030 + L1
     assert abs(x - expected_x) < 1e-6, f"x={x:.4f}, expected {expected_x:.4f}"
     assert abs(y) < 1e-9
     assert abs(z - expected_z) < 1e-6, f"z={z:.4f}, expected {expected_z:.4f}"

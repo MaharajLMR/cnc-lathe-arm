@@ -33,12 +33,12 @@ os.makedirs(RESULTS_DIR, exist_ok=True)
 # ── Cycle waypoints — joint angles from example_load_cycle.yaml ───────────── #
 WAYPOINTS = [
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),
-    ("approach_part",  [0.00, -0.60,  0.90, -0.30, 0.0]),
-    ("grasp_part",     [0.00, -0.70,  1.00, -0.30, 0.0]),
-    ("lift",           [0.00, -0.40,  0.70, -0.30, 0.0]),
-    ("approach_chuck", [1.20, -0.50,  0.80, -0.30, 0.0]),
-    ("insert",         [1.20, -0.45,  0.75, -0.30, 0.0]),
-    ("retract",        [1.20, -0.50,  0.80, -0.30, 0.0]),
+    ("approach_part",  [0.00,  0.80, -1.50,  0.50, 0.0]),
+    ("grasp_part",     [0.00,  0.90, -1.70,  0.60, 0.0]),
+    ("lift",           [0.00,  0.50, -1.20,  0.40, 0.0]),
+    ("approach_chuck", [1.20,  0.60, -1.40,  0.40, 0.0]),
+    ("insert",         [1.20,  0.65, -1.50,  0.45, 0.0]),
+    ("retract",        [1.20,  0.50, -1.30,  0.35, 0.0]),
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),
 ]
 
@@ -121,7 +121,7 @@ def write_report(segments, total_t):
         "5-DOF Lathe Arm — Cycle Time Estimate",
         "=" * 55,
         f"v_max={V_MAX} m/s  a_max={A_MAX} m/s²  dwell={DWELL} s/waypoint",
-        f"(placeholder dimensions — update after real measurements)",
+        f"(industrial dimensions: L1=0.18 L2=0.35 L3=0.30 L4=0.09 L5=0.065 m)",
         "",
         f"{'Segment':25s} {'Dist (m)':>9} {'Move (s)':>9} {'Total (s)':>10}",
         "-" * 57,

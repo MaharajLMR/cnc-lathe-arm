@@ -18,19 +18,19 @@ import math
 import numpy as np
 
 
-# ── Placeholder link lengths — replace with real measurements ────────────── #
-L1 = 0.12   # base-to-shoulder height
-L2 = 0.25   # upper arm
-L3 = 0.22   # forearm
-L4 = 0.10   # wrist pitch
-L5 = 0.06   # wrist roll / ee offset
+# ── Industrial link lengths (metres) ─────────────────────────────────────── #
+L1 = 0.180  # base-to-shoulder height
+L2 = 0.350  # upper arm
+L3 = 0.300  # forearm
+L4 = 0.090  # wrist pitch
+L5 = 0.065  # wrist roll / ee offset
 
 JOINT_LIMITS = [
-    (-math.pi / 2,  math.pi / 2),   # J1 yaw
-    (-math.pi / 2,  math.pi / 2),   # J2 shoulder
-    (-2 * math.pi / 3, 2 * math.pi / 3),  # J3 elbow
-    (-math.pi / 2,  math.pi / 2),   # J4 wrist pitch
-    (-math.pi, math.pi),             # J5 wrist roll
+    (-1.5708,  1.5708),  # J1 base yaw  ±90°
+    (-1.0,     1.9),     # J2 shoulder pitch  -57° to +109°
+    (-2.1,     0.2),     # J3 elbow pitch  -120° to +11.5°
+    (-1.5708,  1.5708),  # J4 wrist pitch  ±90°
+    (-math.pi, math.pi), # J5 wrist roll   ±180°
 ]
 
 
@@ -91,7 +91,7 @@ def fk(q: list[float], lengths: dict | None = None) -> np.ndarray:
 
     q1, q2, q3, q4, q5 = q
 
-    T = (Tz(0.025) @ Rz(q1)
+    T = (Tz(0.030) @ Rz(q1)
        @ Tz(l1)    @ Ry(q2)
        @ Tx(l2)    @ Ry(q3)
        @ Tx(l3)    @ Ry(q4)

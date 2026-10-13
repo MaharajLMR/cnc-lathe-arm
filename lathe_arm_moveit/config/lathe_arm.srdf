@@ -3,27 +3,27 @@
   Semantic Robot Description Format (SRDF) for the 5-DOF CNC Lathe Arm.
 
   Defines:
-    - Planning group "arm"  (all 5 joints → KDL IK chain)
-    - End-effector "gripper" attached at end_effector link
-    - Named robot states (home, approach_chuck, approach_part)
-    - Disabled self-collision pairs (geometrically impossible)
+    - Planning group "lathe_arm" (all 5 joints → KDL IK chain to ee_link)
+    - End-effector "gripper" at ee_link
+    - Named robot states
+    - Disabled self-collision pairs
 -->
 <robot name="lathe_arm">
 
   <!-- ── Planning groups ─────────────────────────────────────────────────── -->
-  <group name="arm">
-    <chain base_link="base_link" tip_link="end_effector"/>
+  <group name="lathe_arm">
+    <chain base_link="base_link" tip_link="ee_link"/>
   </group>
 
   <!-- ── End-effector ────────────────────────────────────────────────────── -->
   <end_effector name="gripper"
-                parent_link="end_effector"
-                group="arm"/>
+                parent_link="ee_link"
+                group="lathe_arm"/>
 
   <!-- ── Named states ────────────────────────────────────────────────────── -->
 
-  <!-- All joints at zero — straight up along Z (shoulder), arm horizontal -->
-  <group_state name="home" group="arm">
+  <!-- All joints at zero — arm horizontal (safe retract for startup) -->
+  <group_state name="home" group="lathe_arm">
     <joint name="joint_1_base_shoulder"  value="0"/>
     <joint name="joint_2_shoulder_upper" value="0"/>
     <joint name="joint_3_upper_elbow"    value="0"/>
@@ -31,47 +31,41 @@
     <joint name="joint_5_wrist_roll"     value="0"/>
   </group_state>
 
-  <!-- Arm extended toward lathe chuck, wrist angled 90° for collet approach -->
-  <group_state name="approach_chuck" group="arm">
-    <joint name="joint_1_base_shoulder"  value="1.20"/>
-    <joint name="joint_2_shoulder_upper" value="-0.50"/>
-    <joint name="joint_3_upper_elbow"    value="0.80"/>
-    <joint name="joint_4_elbow_wrist"    value="-0.30"/>
+  <!-- Arm angled down to part tray / conveyor for picking -->
+  <group_state name="pre_pick" group="lathe_arm">
+    <joint name="joint_1_base_shoulder"  value="-0.3"/>
+    <joint name="joint_2_shoulder_upper" value="0.8"/>
+    <joint name="joint_3_upper_elbow"    value="-1.5"/>
+    <joint name="joint_4_elbow_wrist"    value="0.5"/>
     <joint name="joint_5_wrist_roll"     value="0"/>
   </group_state>
 
-  <!-- Arm lowered to pick zone on conveyor/tray -->
-  <group_state name="approach_part" group="arm">
-    <joint name="joint_1_base_shoulder"  value="-1.20"/>
-    <joint name="joint_2_shoulder_upper" value="-0.80"/>
-    <joint name="joint_3_upper_elbow"    value="1.20"/>
-    <joint name="joint_4_elbow_wrist"    value="-0.50"/>
+  <!-- Arm at part grasp height -->
+  <group_state name="post_pick" group="lathe_arm">
+    <joint name="joint_1_base_shoulder"  value="-0.3"/>
+    <joint name="joint_2_shoulder_upper" value="0.5"/>
+    <joint name="joint_3_upper_elbow"    value="-1.2"/>
+    <joint name="joint_4_elbow_wrist"    value="0.4"/>
     <joint name="joint_5_wrist_roll"     value="0"/>
   </group_state>
 
-  <!-- Arm lifted straight up — clear of fixtures for safe transit -->
-  <group_state name="retract" group="arm">
-    <joint name="joint_1_base_shoulder"  value="0"/>
-    <joint name="joint_2_shoulder_upper" value="-1.20"/>
-    <joint name="joint_3_upper_elbow"    value="1.80"/>
-    <joint name="joint_4_elbow_wrist"    value="-0.60"/>
+  <!-- Arm extended toward lathe chuck -->
+  <group_state name="drop" group="lathe_arm">
+    <joint name="joint_1_base_shoulder"  value="0.8"/>
+    <joint name="joint_2_shoulder_upper" value="0.6"/>
+    <joint name="joint_3_upper_elbow"    value="-1.4"/>
+    <joint name="joint_4_elbow_wrist"    value="0.3"/>
     <joint name="joint_5_wrist_roll"     value="0"/>
   </group_state>
 
   <!-- ── Disabled self-collision pairs ───────────────────────────────────── -->
-  <!--
-    Adjacent link pairs: link_N and link_N+1 share a joint — URDF guarantees
-    they do not intersect at any valid joint angle.
-  -->
   <disable_collisions link1="base_link"  link2="link_1" reason="Adjacent"/>
   <disable_collisions link1="link_1"     link2="link_2" reason="Adjacent"/>
   <disable_collisions link1="link_2"     link2="link_3" reason="Adjacent"/>
   <disable_collisions link1="link_3"     link2="link_4" reason="Adjacent"/>
   <disable_collisions link1="link_4"     link2="link_5" reason="Adjacent"/>
-  <disable_collisions link1="link_5"     link2="end_effector" reason="Adjacent"/>
+  <disable_collisions link1="link_5"     link2="ee_link" reason="Adjacent"/>
 
-  <!-- Non-adjacent pairs that are geometrically incapable of collision
-       given the joint limits defined in the URDF. -->
   <disable_collisions link1="base_link" link2="link_2" reason="Never"/>
   <disable_collisions link1="base_link" link2="link_3" reason="Never"/>
   <disable_collisions link1="link_1"    link2="link_3" reason="Never"/>
@@ -79,6 +73,6 @@
   <disable_collisions link1="link_2"    link2="link_4" reason="Never"/>
   <disable_collisions link1="link_2"    link2="link_5" reason="Never"/>
   <disable_collisions link1="link_3"    link2="link_5" reason="Never"/>
-  <disable_collisions link1="link_3"    link2="end_effector" reason="Never"/>
+  <disable_collisions link1="link_3"    link2="ee_link" reason="Never"/>
 
 </robot>
