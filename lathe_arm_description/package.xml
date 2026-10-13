@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>lathe_arm_description</name>
+  <version>0.1.0</version>
+  <description>URDF description of the 5-DOF CNC lathe loading arm.</description>
+  <maintainer email="lmrrajan2005@gmail.com">Maharaj L M R</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>xacro</depend>
+  <depend>robot_state_publisher</depend>
+  <depend>joint_state_publisher_gui</depend>
+  <depend>rviz2</depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

@@ -1,0 +1,28 @@
+# Example load/unload cycle waypoints.
+# Joint angles in radians. Replace with values from your teach session.
+# Joints: base_shoulder, shoulder_upper, upper_elbow, elbow_wrist, wrist_roll
+
+waypoints:
+  - name: home
+    joints: [0.0, 0.0, 0.0, 0.0, 0.0]
+
+  - name: approach_part
+    joints: [0.0, -0.52, 0.80, -0.28, 0.0]
+
+  - name: grasp_part
+    joints: [0.0, -0.65, 1.05, -0.40, 0.0]
+
+  - name: lift_with_part
+    joints: [0.0, -0.52, 0.80, -0.28, 0.0]
+
+  - name: approach_chuck
+    joints: [1.57, -0.30, 0.60, -0.30, 0.0]
+
+  - name: insert_into_chuck
+    joints: [1.57, -0.42, 0.75, -0.33, 0.0]
+
+  - name: retract_from_chuck
+    joints: [1.57, -0.30, 0.60, -0.30, 0.0]
+
+  - name: home
+    joints: [0.0, 0.0, 0.0, 0.0, 0.0]

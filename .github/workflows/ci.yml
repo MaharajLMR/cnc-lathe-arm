@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-24.04
+    container:
+      image: ros:jazzy-ros-base
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -y --no-install-recommends \
+            ros-jazzy-ros2-control \
+            ros-jazzy-ros2-controllers \
+            ros-jazzy-gz-ros2-control \
+            ros-jazzy-control-msgs \
+            ros-jazzy-trajectory-msgs \
+            ros-jazzy-moveit \
+            python3-colcon-common-extensions \
+            python3-rosdep \
+            python3-pytest \
+            python3-yaml
+          rosdep init 2>/dev/null || true
+          rosdep update
+          rosdep install --from-paths . --ignore-src -r -y
+
+      - name: Build
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
+
+      - name: Run teach mode tests
+        run: |
+          python3 -m pytest tests/ -v
+
+      - name: Validate example waypoints YAML
+        run: |
+          python3 -c "
+          import yaml
+          with open('lathe_arm_teach/waypoints/example_load_cycle.yaml') as f:
+              data = yaml.safe_load(f)
+          wps = data['waypoints']
+          assert len(wps) >= 4, f'Need at least 4 waypoints, got {len(wps)}'
+          for wp in wps:
+              assert 'name' in wp
+              assert len(wp['joints']) == 5, f'{wp[\"name\"]}: expected 5 joints'
+          print(f'Waypoints OK: {len(wps)} waypoints validated')
+          "
