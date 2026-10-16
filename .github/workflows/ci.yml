@@ -32,7 +32,7 @@ jobs:
             python3-numpy \
             python3-matplotlib \
             python3-pip
-          pip3 install --break-system-packages asyncua
+          pip3 install --break-system-packages --ignore-installed asyncua
           rosdep init 2>/dev/null || true
           rosdep update
           rosdep install --from-paths . --ignore-src -r -y
