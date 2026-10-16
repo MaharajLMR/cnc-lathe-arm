@@ -33,7 +33,7 @@ NODES = {
     "EStop": {
         "node_id": "ns=2;s=EStop",
         "type": "Boolean",
-        "description": "Emergency stop state — write True to trigger e-stop",
+        "description": "Emergency stop state, write True to trigger e-stop",
         "access": "ReadWrite",
     },
     "JointPositions": {
@@ -61,5 +61,5 @@ FAULT_CODES = {
     "E02": "Joint velocity exceeded rated limit",
     "E03": "Joint tracking error exceeded 1°",
     "E04": "Near-singular configuration (μ < 0.01)",
-    "E05": "Safety zone violation — operator proximity",
+    "E05": "Safety zone violation, operator proximity",
 }

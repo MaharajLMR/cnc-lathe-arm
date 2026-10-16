@@ -1,4 +1,4 @@
-"""Tests for analysis/cartesian_path_planner.py — no ROS required."""
+"""Tests for analysis/cartesian_path_planner.py, no ROS required."""
 
 import sys
 import math
@@ -29,7 +29,7 @@ def test_linear_segment_is_straight(planner):
     p1 = np.array([0.4, 0.0, 0.05])
     pts = planner.linear_segment(p0, p1, n_points=50)
     err = linearity_error_mm(pts)
-    assert err < 0.001, f"Linearity error {err:.4f} mm — linear_segment must be a straight line"
+    assert err < 0.001, f"Linearity error {err:.4f} mm, linear_segment must be a straight line"
 
 
 def test_quintic_zero_boundary_velocity(planner):

@@ -1,4 +1,4 @@
-# Pinout — STM32F446RE → U2D2 → Dynamixel
+# Pinout: STM32F446RE → U2D2 → Dynamixel
 
 ## STM32 ↔ U2D2
 

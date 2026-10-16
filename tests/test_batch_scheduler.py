@@ -1,4 +1,4 @@
-"""Tests for analysis/batch_scheduler.py — no ROS required."""
+"""Tests for analysis/batch_scheduler.py, no ROS required."""
 
 import sys
 import random
@@ -86,7 +86,7 @@ def test_compare_strategies_returns_all_three():
 
 def test_diameter_asc_minimizes_changeovers():
     sched = BatchScheduler()
-    # Parts with large diameter gaps — diameter_asc should sort them to minimize changeovers
+    # Parts with large diameter gaps, diameter_asc should sort them to minimize changeovers
     for d in [30, 80, 45, 75, 60]:
         sched.add_part(f"P{d}", float(d), "AL", priority=1)
     res_asc = sched.simulate_batch("diameter_asc")

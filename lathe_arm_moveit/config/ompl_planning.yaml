@@ -1,5 +1,5 @@
 planner_configs:
-  # ── Asymptotically optimal planners (preferred for manipulators) ────────
+  # Asymptotically optimal planners (preferred for manipulators)
   RRTstarkConfigDefault:
     type: geometric::RRTstar
     range: 0.0
@@ -13,7 +13,7 @@ planner_configs:
   PRMstarkConfigDefault:
     type: geometric::PRMstar
 
-  # ── Arm group default ───────────────────────────────────────────────────
+  # Arm group default
 arm:
   default_planner_config: RRTConnectkConfigDefault
   planner_configs:

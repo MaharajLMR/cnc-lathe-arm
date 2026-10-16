@@ -47,8 +47,7 @@ class BatchScheduler:
     def add_part(self, part_id: str, diameter_mm: float, material: str, priority: int):
         self.parts.append(WorkPart(part_id, diameter_mm, material, priority))
 
-    # ── Scheduling strategies ─────────────────────────────────────────────── #
-
+    # Scheduling strategies ─────────────────────────────────────────────── #
     def _ordered_ids(self, strategy: str) -> list[str]:
         if strategy == "priority_fifo":
             # Primary: priority ascending (1=high first); secondary: insertion order
@@ -73,8 +72,7 @@ class BatchScheduler:
                     t += CHANGEOVER_S
         return ordered, t
 
-    # ── Simulation ───────────────────────────────────────────────────────── #
-
+    # Simulation ───────────────────────────────────────────────────────── #
     def simulate_batch(self, strategy: str):
         parts_map = {p.part_id: p for p in self.parts}
         ordered, _ = self.schedule(strategy)
@@ -111,15 +109,13 @@ class BatchScheduler:
             "mean_wait_s": float(round(total / len(records), 3)) if records else 0.0,
         }
 
-    # ── Compare strategies ───────────────────────────────────────────────── #
-
+    # Compare strategies ───────────────────────────────────────────────── #
     def compare_strategies(self):
         strategies = ["priority_fifo", "diameter_asc", "naive_fifo"]
         return {s: self.simulate_batch(s) for s in strategies}
 
 
-# ── Gantt chart ───────────────────────────────────────────────────────────── #
-
+# Gantt chart ───────────────────────────────────────────────────────────── #
 def plot_gantt(sim_result: dict, out_path: Path):
     records = sim_result["records"]
     fig, ax = plt.subplots(figsize=(14, max(4, len(records) * 0.45 + 1)))
@@ -140,7 +136,7 @@ def plot_gantt(sim_result: dict, out_path: Path):
     ax.set_yticklabels([r["part_id"] for r in records], fontsize=8)
     ax.set_xlabel("Time (s)")
     strat = sim_result["strategy"].replace("_", " ").title()
-    ax.set_title(f"Batch Schedule — {strat}  |  "
+    ax.set_title(f"Batch Schedule, {strat}  |  "
                  f"Total: {sim_result['total_time_s']:.1f}s  |  "
                  f"Utilisation: {sim_result['utilization_pct']:.0f}%")
 
@@ -153,8 +149,7 @@ def plot_gantt(sim_result: dict, out_path: Path):
     print(f"Saved {out_path}")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────── #
-
+# Main ──────────────────────────────────────────────────────────────────── #
 def main():
     rng = random.Random(42)
     materials = ["AL", "STEEL", "BRASS"]

@@ -1,5 +1,5 @@
 """
-Tests for URDF structure and FK consistency — no ROS required.
+Tests for URDF structure and FK consistency, no ROS required.
 
 Parses lathe_arm.urdf.xacro (as plain XML after stripping xacro macros)
 and verifies joint structure, limits, and ee_link existence.
@@ -17,8 +17,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "analysis"))
 import fk_kinematics as fk
 
 
-# ── helpers ──────────────────────────────────────────────────────────────── #
-
+# helpers ──────────────────────────────────────────────────────────────── #
 URDF_PATH = Path(__file__).parent.parent / "lathe_arm_description" / "urdf" / "lathe_arm.urdf.xacro"
 
 
@@ -50,8 +49,7 @@ def _load_urdf() -> ET.Element:
     return ET.fromstring(resolved)
 
 
-# ── tests ─────────────────────────────────────────────────────────────────── #
-
+# tests ─────────────────────────────────────────────────────────────────── #
 def test_urdf_file_exists():
     assert URDF_PATH.exists(), f"URDF not found: {URDF_PATH}"
 

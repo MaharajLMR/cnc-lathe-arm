@@ -8,7 +8,7 @@ Start:
   python3 -m lathe_arm_opcua.opcua_server --port 4840
 
 Requires: pip install asyncua
-Degrades gracefully when asyncua is not installed — prints stub info and exits.
+Degrades gracefully when asyncua is not installed, prints stub info and exits.
 """
 
 import asyncio
@@ -71,7 +71,7 @@ class LatheArmOpcUAServer:
     async def run(self):
         """Start the OPC-UA server. Blocks until cancelled."""
         if not _ASYNCUA_OK:
-            print("asyncua not installed — OPC-UA server running as stub.")
+            print("asyncua not installed, OPC-UA server running as stub.")
             print(f"  Endpoint (would be): opc.tcp://0.0.0.0:{self.port}/LatheArm/")
             print("  Install with: pip install asyncua")
             print()
@@ -83,7 +83,7 @@ class LatheArmOpcUAServer:
         server = Server()
         await server.init()
         server.set_endpoint(f"opc.tcp://0.0.0.0:{self.port}/LatheArm/")
-        server.set_server_name("CIT Chennai — 5-DOF CNC Lathe Arm")
+        server.set_server_name("CIT Chennai, 5-DOF CNC Lathe Arm")
 
         idx = await server.register_namespace(NAMESPACE_URI)
         objects = server.get_objects_node()

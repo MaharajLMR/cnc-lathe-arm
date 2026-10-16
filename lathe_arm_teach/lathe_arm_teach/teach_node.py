@@ -1,5 +1,5 @@
 """
-Teach mode node — jog the arm joint-by-joint and save waypoints to YAML.
+Teach mode node, jog the arm joint-by-joint and save waypoints to YAML.
 
 Controls:
   1-5        : select joint (1=base ... 5=wrist_roll)
@@ -78,7 +78,7 @@ class TeachNode(Node):
         self._pub.publish(msg)
 
     def run_interactive(self):
-        """Main keyboard loop — runs in the current thread."""
+        """Main keyboard loop, runs in the current thread."""
         print(f"\n  Active joint: {JOINT_NAMES[self._active_joint]}")
         while rclpy.ok():
             ch = _getch()

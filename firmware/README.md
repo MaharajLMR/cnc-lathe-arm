@@ -1,4 +1,4 @@
-# Firmware — 5-DOF Lathe Loading Arm
+# Firmware: 5-DOF Lathe Loading Arm
 
 Proposed hardware and firmware architecture for the industrial version of the arm. This is a design document with a costed BOM; it is not the firmware from the hackathon prototype.
 
@@ -28,7 +28,7 @@ Proposed hardware and firmware architecture for the industrial version of the ar
 Host PC (ROS 2)
   │  USB
   ▼
-U2D2 — USB ↔ RS-485 half-duplex
+U2D2: USB ↔ RS-485 half-duplex
   │  RS-485 daisy-chain @ 1 Mbps
   ▼
 XM430 #1 → #2 → #3 → #4 → #5
@@ -39,9 +39,9 @@ Sync-Write for simultaneous position commands (100 Hz), Bulk-Read for feedback.
 
 ## Safety
 
-- **Hardware e-stop**: PA0 shorted to GND → TIM1 update ISR zeroes all PWM outputs.
-- **Software joint limits**: enforced in `servo_control.cpp` before every write.
-- **Overcurrent**: XM430 reports `present_current`; MCU faults if > 2.0 A sustained > 200 ms.
+- Hardware e-stop: PA0 shorted to GND → TIM1 update ISR zeroes all PWM outputs.
+- Software joint limits: enforced in `servo_control.cpp` before every write.
+- Overcurrent: XM430 reports `present_current`; MCU faults if > 2.0 A sustained > 200 ms.
 
 ## Firmware Structure
 

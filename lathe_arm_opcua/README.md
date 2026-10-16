@@ -1,13 +1,13 @@
-# OPC-UA Interface — CNC Lathe Loading Arm
+# OPC-UA Interface: CNC Lathe Loading Arm
 
 ## Why OPC-UA?
 
 OPC-UA (IEC 62541) is the de-facto standard for industrial device connectivity. It allows the lathe arm controller to be monitored and controlled from:
 
 - **SCADA / HMI systems** (Ignition, WonderWare, Simatic WinCC)
-- **MES / ERP systems** (SAP ME, Tulip) — cycle count and batch progress feed the production tracking database
-- **Digital twin platforms** (Azure Digital Twins, AWS IoT TwinMaker) — real-time joint positions and EE pose
-- **Python test clients** — `opcua-asyncio` for automated quality checks
+- **MES / ERP systems** (SAP ME, Tulip): cycle count and batch progress feed the production tracking database
+- **Digital twin platforms** (Azure Digital Twins, AWS IoT TwinMaker): real-time joint positions and EE pose
+- **Python test clients**: `opcua-asyncio` for automated quality checks
 
 ## Address Space
 
@@ -32,7 +32,7 @@ Namespace URI: `urn:CITChennai:LatheArm`
 | E02 | Joint velocity exceeded rated limit |
 | E03 | Joint tracking error exceeded 1° |
 | E04 | Near-singular configuration (μ < 0.01) |
-| E05 | Safety zone violation — operator proximity |
+| E05 | Safety zone violation: operator proximity |
 
 ## Quick Start
 

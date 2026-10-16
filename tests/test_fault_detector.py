@@ -1,4 +1,4 @@
-"""Tests for analysis/fault_detector.py — no ROS required."""
+"""Tests for analysis/fault_detector.py, no ROS required."""
 
 import sys
 import math
@@ -37,7 +37,7 @@ def test_clean_trajectory_no_limit_faults(detector):
 
 def test_joint_limit_fault_detected(detector):
     """A config outside joint limits must raise E01."""
-    q = np.array([0.0, 2.5, 0.0, 0.0, 0.0])  # J2 > 1.9 rad — exceeds limit
+    q = np.array([0.0, 2.5, 0.0, 0.0, 0.0])  # J2 > 1.9 rad, exceeds limit
     times, configs = _flat_trajectory(q)
     faults = detector.check_trajectory(times, configs)
     codes = [f["fault_code"] for f in faults]
@@ -62,7 +62,7 @@ def test_singularity_fault_at_home(detector):
     faults = detector.check_trajectory(times, configs)
     codes = [f["fault_code"] for f in faults]
     assert "E04" in codes, (
-        "E04 expected at home pose (singular — arm fully extended)"
+        "E04 expected at home pose (singular, arm fully extended)"
     )
 
 

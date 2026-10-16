@@ -2,9 +2,9 @@
 Workspace visualisation for the 5-DOF CNC lathe arm.
 
 Produces two plots saved in analysis/results/:
-  1. workspace_side.png  — YZ cross-section at q1=0 (2D reachability cloud)
-  2. workspace_top.png   — XY top-view at z=0.15 m slice
-  3. manipulability.png  — manipulability index along a load cycle path
+  1. workspace_side.png , YZ cross-section at q1=0 (2D reachability cloud)
+  2. workspace_top.png  , XY top-view at z=0.15 m slice
+  3. manipulability.png , manipulability index along a load cycle path
 
 Usage:
   python3 analysis/workspace_map.py
@@ -34,8 +34,7 @@ random.seed(42)
 np.random.seed(42)
 
 
-# ── 1. Random workspace sample ────────────────────────────────────────────── #
-
+# 1. Random workspace sample ────────────────────────────────────────────── #
 N_SAMPLES = 40_000
 print(f"Sampling {N_SAMPLES} random configurations …")
 
@@ -61,8 +60,7 @@ print(f"Actual sampled X range: [{xs.min():.3f}, {xs.max():.3f}]")
 print(f"Actual sampled Z range: [{zs.min():.3f}, {zs.max():.3f}]")
 
 
-# ── 2. Side view (XZ at q1=0) ─────────────────────────────────────────────── #
-
+# 2. Side view (XZ at q1=0) ─────────────────────────────────────────────── #
 # Filter for near-planar (|y| < 0.05) to get the sagittal cross-section
 mask_side = np.abs(ys) < 0.05
 fig, ax = plt.subplots(figsize=(8, 7))
@@ -74,7 +72,7 @@ sc = ax.scatter(
 plt.colorbar(sc, ax=ax, label="Manipulability index")
 ax.set_xlabel("X (m)")
 ax.set_ylabel("Z (m)")
-ax.set_title("5-DOF Lathe Arm — Side View Workspace (|y| < 0.05 m)")
+ax.set_title("5-DOF Lathe Arm, Side View Workspace (|y| < 0.05 m)")
 ax.set_aspect("equal")
 ax.grid(True, alpha=0.3)
 fig.tight_layout()
@@ -84,8 +82,7 @@ plt.close(fig)
 print(f"Saved: {out}")
 
 
-# ── 3. Top view (XY at 0.10 < z < 0.20) ──────────────────────────────────── #
-
+# 3. Top view (XY at 0.10 < z < 0.20) ──────────────────────────────────── #
 mask_top = (zs > 0.05) & (zs < 0.50)
 fig, ax = plt.subplots(figsize=(8, 8))
 sc = ax.scatter(
@@ -96,7 +93,7 @@ sc = ax.scatter(
 plt.colorbar(sc, ax=ax, label="Manipulability index")
 ax.set_xlabel("X (m)")
 ax.set_ylabel("Y (m)")
-ax.set_title("5-DOF Lathe Arm — Top View Workspace (0.10 < z < 0.25 m)")
+ax.set_title("5-DOF Lathe Arm, Top View Workspace (0.10 < z < 0.25 m)")
 ax.set_aspect("equal")
 ax.grid(True, alpha=0.3)
 fig.tight_layout()
@@ -106,8 +103,7 @@ plt.close(fig)
 print(f"Saved: {out}")
 
 
-# ── 4. Manipulability along the example load/unload cycle ─────────────────── #
-
+# 4. Manipulability along the example load/unload cycle ─────────────────── #
 # Waypoints from example_load_cycle.yaml (in radians, converted from deg)
 load_cycle_waypoints = [
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),

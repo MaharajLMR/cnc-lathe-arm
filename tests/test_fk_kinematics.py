@@ -18,8 +18,7 @@ from fk_kinematics import (
 )
 
 
-# ── Elementary transform sanity checks ───────────────────────────────────── #
-
+# Elementary transform sanity checks ───────────────────────────────────── #
 def test_Rz_90_rotates_x_to_y():
     T = Rz(math.pi / 2)
     v = T @ np.array([1, 0, 0, 1])
@@ -40,8 +39,7 @@ def test_Tx_translates():
     assert abs(v[0] - 0.5) < 1e-9
 
 
-# ── FK output shape and type ──────────────────────────────────────────────── #
-
+# FK output shape and type ──────────────────────────────────────────────── #
 def test_fk_returns_4x4():
     T = fk([0, 0, 0, 0, 0])
     assert T.shape == (4, 4)
@@ -96,8 +94,7 @@ def test_j5_roll_does_not_change_position():
     assert diff < 1e-6, f"Wrist roll should not move EE, got diff={diff:.2e}"
 
 
-# ── Jacobian and manipulability ───────────────────────────────────────────── #
-
+# Jacobian and manipulability ───────────────────────────────────────────── #
 def test_jacobian_shape():
     J = jacobian([0.1, -0.3, 0.5, -0.1, 0.2])
     assert J.shape == (6, 5)
@@ -114,7 +111,7 @@ def test_manipulability_positive():
 
 
 def test_home_singularity():
-    """Home pose (all-zero) is singular for this arm geometry — expected."""
+    """Home pose (all-zero) is singular for this arm geometry, expected."""
     m = manipulability([0, 0, 0, 0, 0])
     assert m < 1e-6, (
         f"Home pose should be singular (arm fully extended in X), got m={m:.2e}"
@@ -128,8 +125,7 @@ def test_non_trivial_config_not_singular():
     assert m > 1e-4, f"Expected positive manipulability, got {m:.4f}"
 
 
-# ── Joint limits coverage ────────────────────────────────────────────────── #
-
+# Joint limits coverage ────────────────────────────────────────────────── #
 def test_fk_at_joint_limits():
     """FK should not crash at the boundary of any joint limit."""
     for i, (lo, hi) in enumerate(JOINT_LIMITS):

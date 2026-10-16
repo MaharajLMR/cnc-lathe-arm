@@ -2,11 +2,11 @@
 Fault detector for the 5-DOF CNC lathe loading arm.
 
 Monitors a joint trajectory for five fault types:
-  E01 — joint position limit violation
-  E02 — joint velocity exceeded rated limit
-  E03 — tracking error > 1° (simulated ±0.5% sensor noise)
-  E04 — near-singular configuration (manipulability μ < 0.01)
-  E05 — end-effector entered the forbidden operator safety zone
+  E01, joint position limit violation
+  E02, joint velocity exceeded rated limit
+  E03, tracking error > 1° (simulated ±0.5% sensor noise)
+  E04, near-singular configuration (manipulability μ < 0.01)
+  E05, end-effector entered the forbidden operator safety zone
 
 Usage:
   python3 analysis/fault_detector.py
@@ -22,7 +22,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).parent))
 from fk_kinematics import JOINT_LIMITS, ee_position, manipulability
 
-# ── Limits ────────────────────────────────────────────────────────────────── #
+# Limits ────────────────────────────────────────────────────────────────── #
 JOINT_VEL_LIMIT_RAD_S = [2.0, 2.0, 2.0, 3.0, 4.0]
 TRACKING_ERROR_LIMIT_RAD = math.radians(1.0)
 SINGULARITY_MU_THRESHOLD = 0.01
@@ -81,7 +81,7 @@ class FaultDetector:
             qn = noisy[k]
             pos = ee_position(q)
 
-            # E01 — joint position limit
+            # E01, joint position limit
             for j, (lo, hi) in enumerate(JOINT_LIMITS):
                 if q[j] < lo - 1e-4 or q[j] > hi + 1e-4:
                     faults.append({
@@ -92,7 +92,7 @@ class FaultDetector:
                         "description": f"J{j+1} = {math.degrees(q[j]):.1f}° outside limits",
                     })
 
-            # E02 — velocity
+            # E02, velocity
             for j, v_lim in enumerate(JOINT_VEL_LIMIT_RAD_S):
                 if abs(qv[j]) > v_lim * 1.5:
                     faults.append({
@@ -103,7 +103,7 @@ class FaultDetector:
                         "description": f"J{j+1} velocity {math.degrees(qv[j]):.1f}°/s > limit",
                     })
 
-            # E03 — tracking error (commanded vs noisy)
+            # E03, tracking error (commanded vs noisy)
             track_err = np.abs(qn - q)
             for j, err in enumerate(track_err):
                 if err > TRACKING_ERROR_LIMIT_RAD:
@@ -114,7 +114,7 @@ class FaultDetector:
                         "description": f"J{j+1} tracking error {math.degrees(err):.2f}° > 1°",
                     })
 
-            # E04 — singularity
+            # E04, singularity
             mu = manipulability(q)
             if mu < SINGULARITY_MU_THRESHOLD:
                 faults.append({
@@ -123,7 +123,7 @@ class FaultDetector:
                     "description": f"Near-singular: μ = {mu:.4f} < {SINGULARITY_MU_THRESHOLD}",
                 })
 
-            # E05 — safety zone
+            # E05, safety zone
             sz = SAFETY_ZONE
             if (sz["x_min"] <= pos[0] <= sz["x_max"] and
                     sz["y_min"] <= pos[1] <= sz["y_max"] and
@@ -144,8 +144,7 @@ class FaultDetector:
         return clean / len(times) if len(times) > 0 else 1.0
 
 
-# ── Demo: run on the load-cycle trajectory ────────────────────────────────── #
-
+# Demo: run on the load-cycle trajectory ────────────────────────────────── #
 def main():
     from cartesian_path_planner import CartesianPathPlanner
 
@@ -174,7 +173,7 @@ def main():
         "E02": "Joint velocity exceeded rated limit",
         "E03": "Joint tracking error exceeded 1°",
         "E04": "Near-singular configuration (μ < 0.01)",
-        "E05": "Safety zone violation — operator proximity",
+        "E05": "Safety zone violation, operator proximity",
     }
     for code in ["E01", "E02", "E03", "E04", "E05"]:
         print(f"  {code}  {counts.get(code, 0):4d}  {FAULT_DESC[code]}")

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  5-DOF CNC Lathe Loading Arm — URDF
+  5-DOF CNC Lathe Loading Arm, URDF
 
   Industrial proportions for a ~5 kg payload CNC tending arm.
   Kinematic chain (all revolute):
@@ -10,7 +10,7 @@
   Joint axes:
     joint_1: Z (base yaw)
     joint_2: Y (shoulder pitch)
-    joint_3: Y (elbow pitch — negative bends arm back toward chuck level)
+    joint_3: Y (elbow pitch, negative bends arm back toward chuck level)
     joint_4: Y (wrist pitch)
     joint_5: X (wrist roll)
 -->

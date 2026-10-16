@@ -18,7 +18,7 @@ import math
 import numpy as np
 
 
-# ── Industrial link lengths (metres) ─────────────────────────────────────── #
+# Industrial link lengths (metres) ─────────────────────────────────────── #
 L1 = 0.180  # base-to-shoulder height
 L2 = 0.350  # upper arm
 L3 = 0.300  # forearm
@@ -34,8 +34,7 @@ JOINT_LIMITS = [
 ]
 
 
-# ── Elementary transforms ─────────────────────────────────────────────────── #
-
+# Elementary transforms ─────────────────────────────────────────────────── #
 def Rx(a: float) -> np.ndarray:
     c, s = math.cos(a), math.sin(a)
     return np.array([[1, 0, 0, 0],
@@ -70,8 +69,7 @@ def Tz(d: float) -> np.ndarray:
                      [0, 0, 0, 1]], dtype=float)
 
 
-# ── Forward kinematics ────────────────────────────────────────────────────── #
-
+# Forward kinematics ────────────────────────────────────────────────────── #
 def fk(q: list[float], lengths: dict | None = None) -> np.ndarray:
     """
     Compute 4×4 homogeneous transform from world to end-effector.
@@ -116,8 +114,7 @@ def ee_xyz_rpy(q: list[float], lengths: dict | None = None) -> tuple:
     return x, y, z, roll, pitch, yaw
 
 
-# ── Jacobian (numerical, 5×6) ─────────────────────────────────────────────── #
-
+# Jacobian (numerical, 5×6) ─────────────────────────────────────────────── #
 def jacobian(q: list[float], eps: float = 1e-6) -> np.ndarray:
     """
     Numerical Jacobian: 6×5 matrix mapping joint velocities to
@@ -148,8 +145,7 @@ def manipulability(q: list[float]) -> float:
     return math.sqrt(max(0.0, np.linalg.det(Jl @ Jl.T)))
 
 
-# ── Self-test / demo ──────────────────────────────────────────────────────── #
-
+# Self-test / demo ──────────────────────────────────────────────────────── #
 if __name__ == "__main__":
     np.set_printoptions(precision=4, suppress=True)
 

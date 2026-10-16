@@ -1,4 +1,4 @@
-5-DOF Lathe Arm — Cycle Time Estimate
+5-DOF Lathe Arm, Cycle Time Estimate
 =======================================================
 v_max=0.8 m/s  a_max=3.0 m/s²  dwell=0.2 s/waypoint
 (industrial dimensions: L1=0.18 L2=0.35 L3=0.30 L4=0.09 L5=0.065 m)

@@ -1,5 +1,5 @@
 """
-Replay node — loads a YAML waypoint file and executes the sequence via MoveIt 2.
+Replay node, loads a YAML waypoint file and executes the sequence via MoveIt 2.
 
 Usage:
   ros2 run lathe_arm_teach replay_node --ros-args -p waypoints:=my_waypoints.yaml

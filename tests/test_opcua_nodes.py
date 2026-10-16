@@ -1,4 +1,4 @@
-"""Tests for lathe_arm_opcua node definitions — no ROS, no asyncua required."""
+"""Tests for lathe_arm_opcua node definitions, no ROS, no asyncua required."""
 
 import sys
 from pathlib import Path

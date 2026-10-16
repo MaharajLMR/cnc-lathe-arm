@@ -1,5 +1,5 @@
 """
-Unit tests for teach mode and replay — no ROS required.
+Unit tests for teach mode and replay, no ROS required.
 
 Tests:
   - Waypoint YAML round-trip (save then load)

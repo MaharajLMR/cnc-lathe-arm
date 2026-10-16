@@ -1,4 +1,4 @@
-# Example load/unload cycle waypoints — 5-DOF CNC Lathe Loading Arm
+# Example load/unload cycle waypoints, 5-DOF CNC Lathe Loading Arm
 # Joint angles in radians.
 # Joints: base_shoulder, shoulder_upper, upper_elbow, elbow_wrist, wrist_roll
 # Limits: j1=[-1.57,+1.57]  j2=[-1.0,+1.9]  j3=[-2.1,+0.2]  j4=[-1.57,+1.57]  j5=[-π,+π]

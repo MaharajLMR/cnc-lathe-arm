@@ -7,7 +7,7 @@ Uses the FK module + trapezoidal velocity profiles to:
   3. Sum up to get total estimated cycle time.
   4. Overlay with manipulability at each waypoint.
 
-⚠ Assumes placeholder dimensions. Update when Maharaj provides real measurements.
+Uses the design link lengths from docs/DESIGN.md.
 
 Output: analysis/results/cycle_estimate.png + cycle_estimate.txt
 
@@ -30,7 +30,7 @@ from fk_kinematics import ee_position, manipulability, JOINT_LIMITS
 RESULTS_DIR = os.path.join(os.path.dirname(__file__), "results")
 os.makedirs(RESULTS_DIR, exist_ok=True)
 
-# ── Cycle waypoints — joint angles from example_load_cycle.yaml ───────────── #
+# Cycle waypoints, joint angles from example_load_cycle.yaml ───────────── #
 WAYPOINTS = [
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),
     ("approach_part",  [0.00,  0.80, -1.50,  0.50, 0.0]),
@@ -42,7 +42,7 @@ WAYPOINTS = [
     ("home",           [0.00,  0.00,  0.00,  0.00, 0.0]),
 ]
 
-# ── Motion limits ────────────────────────────────────────────────────────── #
+# Motion limits ────────────────────────────────────────────────────────── #
 # Conservative: 1.0 m/s Cartesian peak, 4 m/s² accel (no S-curve rounding)
 V_MAX  = 0.80   # m/s
 A_MAX  = 3.00   # m/s²
@@ -92,7 +92,7 @@ def plot(segments, total_t, names, manips):
 
     axes[0].barh(labels, times, color=colors)
     axes[0].set_xlabel("Segment time (s)  [move + 0.20 s dwell]")
-    axes[0].set_title(f"Load Cycle Segment Times — estimated total: {total_t:.2f} s")
+    axes[0].set_title(f"Load Cycle Segment Times, estimated total: {total_t:.2f} s")
     axes[0].axvline(0.5, color="green", linestyle="--", linewidth=0.8, label="0.5 s target")
     axes[0].legend()
     axes[0].grid(True, axis="x", alpha=0.3)
@@ -118,7 +118,7 @@ def plot(segments, total_t, names, manips):
 
 def write_report(segments, total_t):
     lines = [
-        "5-DOF Lathe Arm — Cycle Time Estimate",
+        "5-DOF Lathe Arm, Cycle Time Estimate",
         "=" * 55,
         f"v_max={V_MAX} m/s  a_max={A_MAX} m/s²  dwell={DWELL} s/waypoint",
         f"(industrial dimensions: L1=0.18 L2=0.35 L3=0.30 L4=0.09 L5=0.065 m)",

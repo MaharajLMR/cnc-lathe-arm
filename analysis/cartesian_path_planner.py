@@ -2,7 +2,7 @@
 Cartesian path planner for the 5-DOF CNC lathe loading arm.
 
 For CNC lathe loading the end-effector MUST approach the chuck along a straight
-Cartesian line — joint-interpolated arcs can clip the workpart or machine frame.
+Cartesian line, joint-interpolated arcs can clip the workpart or machine frame.
 
 Segments:
   free-motion  → quintic joint-space interpolation
@@ -25,13 +25,12 @@ import matplotlib.pyplot as plt
 sys.path.insert(0, str(Path(__file__).parent))
 from fk_kinematics import fk, ee_position, jacobian, JOINT_LIMITS, L1, L2, L3, L4, L5
 
-# ── Joint limits as arrays ────────────────────────────────────────────────── #
+# Joint limits as arrays ────────────────────────────────────────────────── #
 Q_MIN = np.array([lo for lo, _ in JOINT_LIMITS])
 Q_MAX = np.array([hi for _, hi in JOINT_LIMITS])
 
 
-# ── Numerical IK via damped least-squares ────────────────────────────────── #
-
+# Numerical IK via damped least-squares ────────────────────────────────── #
 def jacobian_ik(target_pos, q_init, max_iter=300, tol=1e-5, lam=0.01):
     """
     Numerical IK using damped least-squares (DLS) with the position Jacobian.
@@ -51,8 +50,7 @@ def jacobian_ik(target_pos, q_init, max_iter=300, tol=1e-5, lam=0.01):
     return q
 
 
-# ── Quintic polynomial (minimum-jerk) scalar helper ──────────────────────── #
-
+# Quintic polynomial (minimum-jerk) scalar helper ──────────────────────── #
 def _quintic_coeff(q0, qf, T):
     """Return [a0..a5] for min-jerk quintic with zero boundary velocities/accels."""
     a0, a1, a2 = q0, 0.0, 0.0
@@ -75,14 +73,12 @@ def _eval_quintic(c, t):
     return q, dq, ddq
 
 
-# ── CartesianPathPlanner ──────────────────────────────────────────────────── #
-
+# CartesianPathPlanner ──────────────────────────────────────────────────── #
 class CartesianPathPlanner:
     def __init__(self):
         self.joint_limits = JOINT_LIMITS
 
-    # ── primitives ────────────────────────────────────────────────────────── #
-
+    # primitives ────────────────────────────────────────────────────────── #
     def linear_segment(self, p_start, p_end, n_points=50):
         """Linear interpolation in Cartesian space → n_points×3 array."""
         t = np.linspace(0.0, 1.0, n_points)
@@ -112,8 +108,7 @@ class CartesianPathPlanner:
                 configs[k, j], _, _ = _eval_quintic(c, t)
         return configs
 
-    # ── IK-backed Cartesian path ──────────────────────────────────────────── #
-
+    # IK-backed Cartesian path ──────────────────────────────────────────── #
     def cartesian_to_joints(self, ee_pts, q_seed):
         """
         Solve IK for each Cartesian point, warm-starting from previous solution.
@@ -126,14 +121,13 @@ class CartesianPathPlanner:
             configs[k] = q
         return configs
 
-    # ── Full load cycle ───────────────────────────────────────────────────── #
-
+    # Full load cycle ───────────────────────────────────────────────────── #
     def plan_load_cycle(self):
         """
         Plan a complete load cycle. Approach / retract / insert segments use
         straight Cartesian paths; free-motion segments use joint-space quintics.
         """
-        # ── Waypoint joint configs from example_load_cycle.yaml ──────────── #
+        # Waypoint joint configs from example_load_cycle.yaml ──────────── #
         q_home            = np.array([0.00,  0.00, -0.00,  0.00, 0.0])
         q_approach_part   = np.array([0.00,  0.80, -1.50,  0.50, 0.0])
         q_grasp_part      = np.array([0.00,  0.90, -1.70,  0.60, 0.0])
@@ -160,7 +154,7 @@ class CartesianPathPlanner:
             "joint_configs": jc,
         })
 
-        # 2. approach_part → grasp_part  [LINEAR — straight down to part]
+        # 2. approach_part → grasp_part  [LINEAR, straight down to part]
         ee_pts = self.linear_segment(p(q_approach_part), p(q_grasp_part), n_points=20)
         jc = self.cartesian_to_joints(ee_pts, q_approach_part)
         segments.append({
@@ -170,7 +164,7 @@ class CartesianPathPlanner:
             "joint_configs": jc,
         })
 
-        # 3. grasp_part → lift  [LINEAR — straight up]
+        # 3. grasp_part → lift  [LINEAR, straight up]
         ee_pts = self.linear_segment(p(q_grasp_part), p(q_lift), n_points=20)
         jc = self.cartesian_to_joints(ee_pts, q_grasp_part)
         segments.append({
@@ -189,7 +183,7 @@ class CartesianPathPlanner:
             "joint_configs": jc,
         })
 
-        # 5. approach_chuck → insert  [LINEAR — straight into chuck axis]
+        # 5. approach_chuck → insert  [LINEAR, straight into chuck axis]
         ee_pts = self.linear_segment(p(q_approach_chuck), p(q_insert), n_points=20)
         jc = self.cartesian_to_joints(ee_pts, q_approach_chuck)
         segments.append({
@@ -199,7 +193,7 @@ class CartesianPathPlanner:
             "joint_configs": jc,
         })
 
-        # 6. insert → retract  [LINEAR — straight back out]
+        # 6. insert → retract  [LINEAR, straight back out]
         ee_pts = self.linear_segment(p(q_insert), p(q_retract), n_points=20)
         jc = self.cartesian_to_joints(ee_pts, q_insert)
         segments.append({
@@ -230,8 +224,7 @@ class CartesianPathPlanner:
         return violations
 
 
-# ── Linearity metric ──────────────────────────────────────────────────────── #
-
+# Linearity metric ──────────────────────────────────────────────────────── #
 def linearity_error_mm(ee_pts):
     """
     Max perpendicular deviation from the straight line p0→pN (millimetres).
@@ -252,21 +245,20 @@ def linearity_error_mm(ee_pts):
     return max_err * 1000.0  # convert to mm
 
 
-# ── Main: run, plot, save ─────────────────────────────────────────────────── #
-
+# Main: run, plot, save ─────────────────────────────────────────────────── #
 def main():
     planner = CartesianPathPlanner()
     print("Planning load cycle …")
     segments = planner.plan_load_cycle()
 
-    # ── Gather all EE positions and joint configs ─────────────────────────── #
+    # Gather all EE positions and joint configs ─────────────────────────── #
     all_ee = np.vstack([s["ee_positions"] for s in segments])
     all_jc = np.vstack([s["joint_configs"] for s in segments])
 
-    # ── Joint limit violations ─────────────────────────────────────────────── #
+    # Joint limit violations ─────────────────────────────────────────────── #
     violations = planner.check_joint_limit_violations(all_jc)
 
-    # ── Linearity errors on LINEAR segments ──────────────────────────────── #
+    # Linearity errors on LINEAR segments ──────────────────────────────── #
     lin_errs = []
     for s in segments:
         if s["path_type"] == "LINEAR":
@@ -276,7 +268,7 @@ def main():
 
     max_lin_err = max(lin_errs) if lin_errs else 0.0
 
-    # ── Plot ──────────────────────────────────────────────────────────────── #
+    # Plot ──────────────────────────────────────────────────────────────── #
     colors = {"LINEAR": "tab:red", "JOINT": "tab:blue"}
     fig, axes = plt.subplots(1, 2, figsize=(14, 6))
 
@@ -314,7 +306,7 @@ def main():
     fig.savefig(out_png, dpi=120)
     print(f"Saved {out_png}")
 
-    # ── JSON results ──────────────────────────────────────────────────────── #
+    # JSON results ──────────────────────────────────────────────────────── #
     result = {
         "n_segments": len(segments),
         "total_trajectory_points": int(len(all_ee)),
