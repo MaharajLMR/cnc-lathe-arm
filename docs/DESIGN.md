@@ -1,34 +1,36 @@
 # P3 Design — 5-DOF CNC Lathe Loading Arm
 
 **Author:** Maharaj L M R  
-**Date:** 2026-10-14  
-**Status:** Structure complete; URDF pending arm dimensions from Maharaj.
+**Date:** 2026-10-16  
+**Status:** Design dimensions fixed; kinematics, MoveIt 2 config and analysis complete.
 
 ---
 
 ## Background
 
-Physical arm competed at **DriveNext RANE SLD Hackathon 2026** (1st runner-up, ₹75,000).  
+The lathe-loading concept placed 1st runner-up (₹75,000) at the **DriveNext RANE SLD Hackathon 2026**.  
 Task: automatically load and unload a part into a CNC lathe chuck.  
-This repo is a digital twin — same kinematics and workflow, but in Gazebo Harmonic with MoveIt 2.
+This repo scales that concept into an industrial design study in ROS 2, MoveIt 2 and Gazebo Harmonic. The dimensions below are chosen design values, sized for a typical small CNC lathe cell; they are not measurements of the competition prototype.
 
 ---
 
-## Dimensions needed (Questions for Maharaj)
+## Design dimensions
 
-| # | Parameter | Why needed | Maharaj's answer |
-|---|---|---|---|
-| 1 | Base-to-shoulder height (link 1 Z length) | URDF joint 1 | |
-| 2 | Upper arm length (link 2, shoulder→elbow) | URDF joint 2 | |
-| 3 | Forearm length (link 3, elbow→wrist) | URDF joint 3 | |
-| 4 | Wrist pitch link length (link 4) | URDF joint 4 | |
-| 5 | Wrist roll / end-effector offset (link 5) | URDF joint 5 | |
-| 6 | Joint angle ranges for all 5 DOF | URDF limits | |
-| 7 | Approximate payload (part mass) | MoveIt 2 planning | |
-| 8 | Mounting: floor / wall / ceiling | URDF world frame | |
-| 9 | MCU used (Arduino / STM32 / ESP32) | Firmware section | |
-| 10 | Distance from arm base to lathe chuck centre | Sim scene layout | |
-| 11 | Chuck inner diameter / part diameter | Collision geometry | |
+| Parameter | Value | Role |
+|---|---|---|
+| L1 base → shoulder | 0.18 m | shoulder height above the base flange |
+| L2 upper arm | 0.35 m | main reach link |
+| L3 forearm | 0.30 m | second reach link |
+| L4 wrist pitch link | 0.09 m | wrist pitch offset |
+| L5 wrist roll → tool | 0.065 m | tool offset to gripper centre |
+| Total reach | 0.985 m | sum of L1–L5 |
+| J1 base yaw | ±90° | swing between part rack and chuck |
+| J2 shoulder | −57° … +109° | |
+| J3 elbow | −120° … +11° | |
+| J4 wrist pitch | ±90° | |
+| J5 wrist roll | ±180° | |
+
+Values are mirrored in `lathe_arm_description/urdf/lathe_arm.urdf.xacro` and `analysis/fk_kinematics.py`; `tests/test_urdf_kinematics.py` checks the two agree.
 
 ---
 
@@ -81,7 +83,7 @@ This repo is a digital twin — same kinematics and workflow, but in Gazebo Harm
 8. **HOME**
 9. (Reverse for unload)
 
-Cycle time measured from a rosbag replay — reported in README.
+Cycle time is currently estimated from trapezoidal profiles (`analysis/cycle_time_estimator.py`); a rosbag measurement follows once the Gazebo sim runs.
 
 ---
 
@@ -105,19 +107,9 @@ waypoints:
 
 ---
 
-## Bill of Materials (from real hardware — fill in costs)
+## Bill of Materials
 
-| Component | Maharaj's cost (₹) |
-|---|---|
-| MCU (to fill) | |
-| 5× servo motors | |
-| Arm frame / chassis material | |
-| Power supply | |
-| End-effector / gripper | |
-| Miscellaneous (wiring, brackets) | |
-| **Total** | |
-
-*These numbers back the "low-cost" claim in the repo title.*
+Proposed hardware for the industrial version is costed in [`firmware/bom.csv`](../firmware/bom.csv): **₹52,370** total (STM32F446RE + 5× Dynamixel XM430 + U2D2 + 24 V supply + frame).
 
 ---
 
@@ -128,9 +120,9 @@ waypoints:
 | M0 | Repo structure + DESIGN.md + teach mode (4/4 tests pass) | ✓ |
 | M1b | Pure-Python FK + Jacobian + workspace analysis (14/14 tests pass) | ✓ |
 | M2 | MoveIt 2 config: SRDF, kinematics.yaml, OMPL, controllers, launch | ✓ |
-| M1 | URDF with real dimensions | **needs Maharaj's measurements** |
+| M1 | URDF with design dimensions | ✓ |
 | M3 | Load/unload cycle in Gazebo + cycle time | needs M1 + ros2-control |
 | M4 | Teach mode end-to-end in sim | needs M3 |
-| M5 | Firmware + BOM section complete | needs Maharaj's files |
-| M6 | RANE competition photos added | needs Maharaj's photos |
+| M5 | Proposed hardware: BOM + pinout + firmware architecture | ✓ |
+| M6 | Gazebo demo GIF | needs ros2-control install |
 | M7 | CI green + README complete | needs M1–M4 |

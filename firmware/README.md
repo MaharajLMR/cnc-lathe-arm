@@ -1,6 +1,6 @@
 # Firmware — 5-DOF Lathe Loading Arm
 
-Original prototype firmware from the DriveNext RANE SLD Hackathon 2026.
+Proposed hardware and firmware architecture for the industrial version of the arm. This is a design document with a costed BOM; it is not the firmware from the hackathon prototype.
 
 ## Hardware Overview
 
@@ -57,4 +57,4 @@ firmware/
 └── pinout.md               (STM32 → U2D2 → Dynamixel wiring)
 ```
 
-*Copy original source files from development laptop into `src/` and `include/`.*
+*Planned layout; source not yet written.*

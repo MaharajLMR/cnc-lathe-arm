@@ -2,12 +2,9 @@
 
 [![CI](https://github.com/MaharajLMR/cnc-lathe-arm/actions/workflows/ci.yml/badge.svg)](https://github.com/MaharajLMR/cnc-lathe-arm/actions/workflows/ci.yml)
 
-**Digital twin of a 5-DOF serial arm that automates CNC lathe loading/unloading. Teach mode lets an operator record a load cycle in minutes; the ROS 2 node replays it with MoveIt 2. Competed at DriveNext RANE SLD Hackathon 2026 — 1st runner-up, ₹75,000.**
+**Industrial design study of a 5-DOF serial arm that automates CNC lathe loading/unloading. Teach mode lets an operator record a load cycle by keyboard jog; a ROS 2 node replays it through MoveIt 2. Grew out of the lathe-loading arm concept I took to the DriveNext RANE SLD Hackathon 2026 (1st runner-up, ₹75,000).**
 
-> **Competition photos:** DriveNext RANE SLD Hackathon 2026 — 1st runner-up, ₹75,000.
-> *(Add photos to `media/rane/` from phone.)*
-
-> **Demo GIF:** Record with `ros2 launch lathe_arm_bringup sim.launch.py` + Kazam.
+> **Scope:** the competition prototype was a different, smaller build. This repo scales the concept to an industrial cell: the link lengths, joint limits, hardware BOM and firmware architecture are design choices documented in [`docs/DESIGN.md`](docs/DESIGN.md), not measurements of the hackathon hardware.
 
 ---
 
@@ -166,16 +163,9 @@ colcon test && colcon test-result --verbose
 
 ---
 
-## Real hardware
+## Origin
 
-> *Add RANE SLD Hackathon 2026 competition photos here.*
-> Place images in `media/rane/` and reference as `![Competition photo](media/rane/photo1.jpg)`.
-
----
-
-## My role
-
-Solo design and build. Competed at **DriveNext RANE SLD Hackathon 2026** (1st runner-up, ₹75,000). Original MCU firmware (STM32F446RE + Dynamixel XM430) in `firmware/`. This repo is a digital twin of that hardware, built to MoveIt 2 + Gazebo Harmonic standard.
+The lathe-loading idea placed **1st runner-up (₹75,000) at the DriveNext RANE SLD Hackathon 2026**. This repo is the follow-up engineering work: a full kinematic model, MoveIt 2 configuration, scheduling, fault monitoring and an OPC-UA interface for an industrial-size version of that arm. `firmware/` holds a proposed STM32F446RE + Dynamixel XM430 hardware design for that version, with a costed BOM.
 
 ---
 
@@ -189,7 +179,7 @@ Solo design and build. Competed at **DriveNext RANE SLD Hackathon 2026** (1st ru
 - [x] M5: Cartesian path planner, batch scheduler, OPC-UA interface, fault detector — 60/60 tests
 - [ ] M6: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
 - [ ] M7: Teach mode end-to-end tested in sim
-- [ ] M8: RANE competition photos + demo GIF
+- [ ] M8: Gazebo demo GIF
 
 ---
 

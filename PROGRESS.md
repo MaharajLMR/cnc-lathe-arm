@@ -51,9 +51,7 @@
 ## Next
 - [ ] M6: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
 - [ ] M7: Teach mode end-to-end tested in sim
-- [ ] M8: RANE competition photos added to media/rane/ (from Maharaj's phone)
+- [ ] M8: Gazebo demo GIF
 - [ ] M9: Demo GIF + README final
 
 ## Blockers (hardware-only)
-- Firmware source: copy original STM32 code into firmware/src/ when available
-- Photos: RANE hackathon competition photos from Maharaj's phone → media/rane/
