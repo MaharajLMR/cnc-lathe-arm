@@ -17,15 +17,19 @@
 
 | Metric | Value | Script |
 |---|---|---|
-| 28/28 unit tests | **PASS** | `pytest tests/` |
+| 62/62 unit tests | **PASS** | `pytest tests/` |
 | Workspace sampled (40,000 configs) | X ∈ [−0.375, 0.804] m, Z ∈ [−0.595, 0.958] m | `analysis/workspace_map.py` |
 | Max theoretical reach | **0.985 m** | L1+L2+L3+L4+L5 |
 | Home EE position (all joints zero) | (0.805, 0, 0.210) m | `analysis/fk_kinematics.py` |
 | Near-singular waypoints in load cycle (μ < 0.01) | **2 / 8** (home pose only) | `analysis/workspace_map.py` |
 | Estimated load/unload cycle time | **5.55 s** | `analysis/cycle_time_estimator.py` |
-| Cycle kinematics: v_max | 0.80 m/s, a_max 3.0 m/s² | `analysis/cycle_time_estimator.py` |
-| Build cost (BOM) | **₹ 52,370** | `firmware/bom.csv` |
-| Load/unload cycle time (sim, recorded) | — s | record rosbag after M3 |
+| Cartesian path planning: 7 segments, 170 points | **0.000 mm** max linear deviation on straight segments | `analysis/cartesian_path_planner.py` |
+| Joint limit violations on full load cycle | **0** | `analysis/cartesian_path_planner.py` |
+| Batch scheduling (10 parts, seed=42) | diameter_asc: **55.50 s**, 0 changeovers, 100% utilisation | `analysis/batch_scheduler.py` |
+| Fault detection: load-cycle trajectory | **90.0%** fault-free; 13× E04 near-singular (home pose) | `analysis/fault_detector.py` |
+| OPC-UA interface | 8 nodes (state/cycles/joints/EE/e-stop/faults), verified with a live asyncua client | `lathe_arm_opcua/` |
+| Build cost (BOM) | **₹ 52,370** (STM32F446RE + 5× Dynamixel XM430) | `firmware/bom.csv` |
+| Load/unload cycle time (sim, recorded) | — s | record rosbag after sim run |
 
 ---
 
@@ -41,14 +45,20 @@ lathe_arm_teach/
   waypoints/
     example_load_cycle.yaml   8-waypoint load cycle (within joint limits)
 analysis/
-  fk_kinematics.py       pure-Python FK + numerical Jacobian + manipulability
-  workspace_map.py       workspace sweep → workspace_side/top.png + manipulability.png
-  cycle_time_estimator.py  trapezoidal profile → cycle_estimate.png
+  fk_kinematics.py           pure-Python FK + numerical Jacobian + manipulability
+  workspace_map.py           workspace sweep → workspace_side/top.png, manipulability.png
+  cycle_time_estimator.py    trapezoidal profile → cycle_estimate.png
+  cartesian_path_planner.py  straight-line Cartesian approach/retract via DLS IK
+  batch_scheduler.py         multi-part scheduling (3 strategies + Gantt chart)
+  fault_detector.py          5 fault types: limits, velocity, tracking, singularity, safety zone
+lathe_arm_opcua/
+  opcua_server.py            asyncua OPC-UA server (8 nodes) for SCADA/MES integration
+  opcua_nodes.py             address space definition
 firmware/
-  README.md              MCU (STM32F446RE), Dynamixel XM430, protocol details
-  bom.csv                Bill of Materials — ₹52,370 total
-  pinout.md              STM32 → U2D2 → Dynamixel wiring table
-docs/DESIGN.md           kinematic design + dimensions
+  README.md                  MCU (STM32F446RE), Dynamixel XM430, protocol details
+  bom.csv                    Bill of Materials — ₹52,370 total
+  pinout.md                  STM32 → U2D2 → Dynamixel wiring table
+docs/DESIGN.md               kinematic design + dimensions
 ```
 
 ---
@@ -101,16 +111,54 @@ ros2 run lathe_arm_teach replay_node --ros-args -p waypoints:=my_cycle.yaml
 
 ---
 
+## Advanced Features
+
+### Cartesian path planning (`analysis/cartesian_path_planner.py`)
+CNC lathe insert/retract segments require straight Cartesian lines — not joint-interpolated arcs, which can clip the chuck jaw or workpart. The planner implements damped-least-squares (DLS) numerical IK on the position Jacobian and verifies linearity via the perpendicular-deviation metric. Result: **0.000 mm** deviation on all four linear segments over the full load cycle.
+
+### Multi-part batch scheduling (`analysis/batch_scheduler.py`)
+Schedules batches of N workparts under three strategies:
+- **priority_fifo** — high-priority parts first (57.0 s, 3 changeovers, 97% utilisation)
+- **diameter_asc** — sort by diameter to minimise gripper changeovers (**55.5 s, 0 changeovers, 100%**)
+- **naive_fifo** — insertion order (58.0 s, 5 changeovers, 96%)
+
+A gripper changeover penalty (0.5 s) is applied whenever consecutive diameters differ by more than 20 mm. Outputs a Gantt chart (`results/batch_schedule.png`).
+
+### OPC-UA industrial interface (`lathe_arm_opcua/`)
+Exposes 8 OPC-UA nodes (IEC 62541) for SCADA/MES/ERP integration:
+`RobotState`, `CycleCount`, `LastCycleTime_s`, `BatchProgress`, `EStop` (read/write), `JointPositions`, `EEPosition`, `Faults`. Degrades gracefully if `asyncua` is not installed. Connect with UA Expert, Ignition, or `python-opcua`.
+
+### Fault detection (`analysis/fault_detector.py`)
+Five fault types monitored in real-time:
+
+| Code | Condition | Load-cycle events |
+|---|---|---|
+| E01 | Joint position outside limits | 0 |
+| E02 | Velocity > 150% rated | 1 |
+| E03 | Tracking error > 1° (±0.5% sensor noise) | 3 |
+| E04 | Near-singular (μ < 0.01) | 13 (home pose) |
+| E05 | EE entered operator safety zone | 0 |
+
+The 13 E04 events confirm the all-zero home pose is kinematically singular — the recommended fix is to move the home position off-axis (documented as a design note in `docs/DESIGN.md`).
+
+---
+
 ## Tests
 
 ```bash
-# All unit tests (no ROS required) — 28 tests
+# All unit tests (no ROS required) — 62 tests (live OPC-UA test needs `pip install asyncua`)
 pytest tests/ -v
 
 # Analysis (no ROS required)
 python3 analysis/fk_kinematics.py
-python3 analysis/workspace_map.py      # → results/workspace_side.png, workspace_top.png, manipulability.png
-python3 analysis/cycle_time_estimator.py  # → results/cycle_estimate.png
+python3 analysis/workspace_map.py            # → results/workspace_{side,top}.png, manipulability.png
+python3 analysis/cycle_time_estimator.py     # → results/cycle_estimate.png
+python3 analysis/cartesian_path_planner.py   # → results/cartesian_paths.png, cartesian_plan.json
+python3 analysis/batch_scheduler.py          # → results/batch_schedule.png, batch_comparison.json
+python3 analysis/fault_detector.py           # → results/fault_report.json
+
+# OPC-UA server (requires: pip install asyncua)
+python3 -m lathe_arm_opcua.opcua_server --port 4840
 
 # Integration tests
 colcon test && colcon test-result --verbose
@@ -138,9 +186,10 @@ Solo design and build. Competed at **DriveNext RANE SLD Hackathon 2026** (1st ru
 - [x] M2: MoveIt 2 config — SRDF, kinematics.yaml, OMPL, controllers
 - [x] M3: Cycle time estimator — 5.55 s, workspace analysis complete
 - [x] M4: Industrial URDF (L=0.18/0.35/0.30/0.09/0.065 m), firmware BOM, 28/28 tests pass
-- [ ] M5: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
-- [ ] M6: Teach mode end-to-end tested in sim
-- [ ] M7: RANE competition photos + demo GIF
+- [x] M5: Cartesian path planner, batch scheduler, OPC-UA interface, fault detector — 60/60 tests
+- [ ] M6: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
+- [ ] M7: Teach mode end-to-end tested in sim
+- [ ] M8: RANE competition photos + demo GIF
 
 ---
 

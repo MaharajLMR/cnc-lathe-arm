@@ -1,8 +1,8 @@
 # PROGRESS — CNC Lathe Loading Arm (5-DOF)
 
-**Last updated:** 2026-10-14 (overnight session #3)
+**Last updated:** 2026-10-16
 
-## Current milestone: M4 complete (28/28 tests pass)
+## Current milestone: M5 complete (62/62 tests pass with asyncua installed)
 
 ## Done
 - [x] Repo structure, git init
@@ -24,7 +24,15 @@
 - [x] tests/test_fk_kinematics.py: 14/14 pass (updated for new base offset)
 - [x] tests/test_teach_replay.py: 4/4 pass (updated joint limits)
 - [x] tests/test_urdf_kinematics.py: 10/10 pass (new — URDF structure + FK cross-check)
-- [x] **Total: 28/28 tests pass**
+- [x] analysis/cartesian_path_planner.py: DLS IK, 7-segment load cycle, 0.000 mm linear deviation
+- [x] analysis/batch_scheduler.py: 3 strategies, Gantt chart, diameter_asc 55.5s/100% utilisation
+- [x] analysis/fault_detector.py: 5 fault types, 90% fault-free on load cycle, E04 home singularity detected
+- [x] lathe_arm_opcua/: 8-node OPC-UA server (asyncua), graceful fallback, SCADA-ready
+- [x] tests/test_cartesian_planner.py: 9 tests
+- [x] tests/test_batch_scheduler.py: 8 tests
+- [x] tests/test_fault_detector.py: 8 tests (E05 safety-zone test now uses an in-zone pose; no longer skipped)
+- [x] tests/test_opcua_nodes.py: 9 tests incl. live asyncua server/client round-trip (fixed UInt32 type crash)
+- [x] **Total: 62/62 tests pass** (61 + 1 skip when asyncua is absent)
 - [x] .github/workflows/ci.yml
 - [x] README.md updated with real analysis numbers
 - [x] LICENSE
@@ -41,10 +49,10 @@
 | Build cost | ₹52,370 |
 
 ## Next
-- [ ] M5: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
-- [ ] M6: Teach mode end-to-end tested in sim
-- [ ] M7: RANE competition photos added to media/rane/ (from Maharaj's phone)
-- [ ] M8: Demo GIF + README final
+- [ ] M6: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
+- [ ] M7: Teach mode end-to-end tested in sim
+- [ ] M8: RANE competition photos added to media/rane/ (from Maharaj's phone)
+- [ ] M9: Demo GIF + README final
 
 ## Blockers (hardware-only)
 - Firmware source: copy original STM32 code into firmware/src/ when available
