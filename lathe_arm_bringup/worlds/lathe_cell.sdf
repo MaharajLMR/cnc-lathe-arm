@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+  Lathe loading cell for the 5-DOF arm (arm base at the origin).
+  Part stand and chuck are placed at the end-effector positions of the
+  example load cycle (lathe_arm_teach/waypoints/example_load_cycle.yaml):
+    grasp_part         -> (0.578, 0.000, 0.182)
+    insert_into_chuck  -> (0.224, 0.577, 0.284)
+  Cell fixtures are visual only, so the arm's planned motions are shown
+  without contact physics. A camera records demo videos on /cell/image.
+-->
+<sdf version="1.9">
+  <world name="lathe_cell">
+    <physics name="1ms" type="ignored"><max_step_size>0.001</max_step_size><real_time_factor>1.0</real_time_factor></physics>
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors"><render_engine>ogre2</render_engine></plugin>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.4 0.3 -0.9</direction>
+    </light>
+
+    <model name="floor">
+      <static>true</static>
+      <link name="link">
+        <collision name="col"><geometry><plane><normal>0 0 1</normal><size>10 10</size></plane></geometry></collision>
+        <visual name="vis"><geometry><plane><normal>0 0 1</normal><size>10 10</size></plane></geometry>
+          <material><ambient>0.55 0.57 0.6 1</ambient><diffuse>0.55 0.57 0.6 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Raw-part stand under the grasp point -->
+    <model name="part_stand">
+      <static>true</static>
+      <pose>0.578 0 0.075 0 0 0</pose>
+      <link name="link">
+        <visual name="stand"><geometry><box><size>0.16 0.16 0.15</size></box></geometry>
+          <material><ambient>0.25 0.3 0.38 1</ambient><diffuse>0.25 0.3 0.38 1</diffuse></material></visual>
+        <visual name="part"><pose>0 0 0.105 0 0 0</pose><geometry><cylinder><radius>0.03</radius><length>0.06</length></cylinder></geometry>
+          <material><ambient>0.75 0.75 0.78 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Lathe: chuck facing the arm along the radial direction (yaw 1.20 rad) -->
+    <model name="lathe">
+      <static>true</static>
+      <pose>0.224 0.577 0.284 0 0 1.20</pose>
+      <link name="link">
+        <visual name="chuck"><pose>0.09 0 0 0 1.5708 0</pose><geometry><cylinder><radius>0.08</radius><length>0.08</length></cylinder></geometry>
+          <material><ambient>0.2 0.2 0.22 1</ambient><diffuse>0.2 0.2 0.22 1</diffuse></material></visual>
+        <visual name="headstock"><pose>0.33 0 -0.02 0 0 0</pose><geometry><box><size>0.4 0.35 0.3</size></box></geometry>
+          <material><ambient>0.15 0.4 0.3 1</ambient><diffuse>0.15 0.4 0.3 1</diffuse></material></visual>
+        <visual name="bed"><pose>0.33 0 -0.21 0 0 0</pose><geometry><box><size>0.5 0.45 0.15</size></box></geometry>
+          <material><ambient>0.12 0.32 0.24 1</ambient><diffuse>0.12 0.32 0.24 1</diffuse></material></visual>
+      </link>
+    </model>
+
+    <!-- Recording camera -->
+    <model name="cell_camera">
+      <static>true</static>
+      <pose>1.6 -1.2 1.2 0 0.459 2.245</pose>
+      <link name="link">
+        <sensor name="cell_cam" type="camera">
+          <update_rate>15</update_rate>
+          <topic>/cell/image</topic>
+          <camera>
+            <horizontal_fov>0.95</horizontal_fov>
+            <image><width>960</width><height>640</height><format>R8G8B8</format></image>
+            <clip><near>0.05</near><far>20</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+  </world>
+</sdf>

@@ -13,6 +13,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from control_msgs.action import FollowJointTrajectory
+from std_msgs.msg import String
 from trajectory_msgs.msg import JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
 
@@ -46,6 +47,8 @@ class ReplayNode(Node):
             self, FollowJointTrajectory,
             "/lathe_arm_controller/follow_joint_trajectory"
         )
+        # Current waypoint name, for HMIs and demo-video captions.
+        self._wp_pub = self.create_publisher(String, "/replay/current_waypoint", 10)
 
     def _load(self, path: str) -> list[dict]:
         p = Path(path)
@@ -61,13 +64,14 @@ class ReplayNode(Node):
 
     def execute(self):
         """Execute all waypoints in sequence. Repeats if loop=true."""
-        if not self._client.wait_for_action_server(timeout_sec=10.0):
+        if not self._client.wait_for_server(timeout_sec=10.0):
             self.get_logger().error("JTC action server not available")
             return
 
         while True:
             for wp in self._waypoints:
                 self.get_logger().info(f"Moving to '{wp['name']}'")
+                self._wp_pub.publish(String(data=wp["name"]))
                 self._send_goal(wp["joints"])
             if not self._loop:
                 break

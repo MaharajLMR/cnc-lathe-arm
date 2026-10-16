@@ -2,9 +2,13 @@
 
 [![CI](https://github.com/MaharajLMR/cnc-lathe-arm/actions/workflows/ci.yml/badge.svg)](https://github.com/MaharajLMR/cnc-lathe-arm/actions/workflows/ci.yml)
 
-**Industrial design study of a 5-DOF serial arm that automates CNC lathe loading/unloading. Teach mode lets an operator record a load cycle by keyboard jog; a ROS 2 node replays it through MoveIt 2. Grew out of the lathe-loading arm concept I took to the DriveNext RANE SLD Hackathon 2026 (1st runner-up, ₹75,000).**
+**Industrial design study of a 5-DOF serial arm that automates CNC lathe loading/unloading. Teach mode lets an operator record a load cycle by keyboard jog; a ROS 2 node replays it on the arm's joint trajectory controller (MoveIt 2 config included for planned motions). Grew out of the lathe-loading arm concept I took to the DriveNext RANE SLD Hackathon 2026 (1st runner-up, ₹75,000).**
 
 > **Scope:** the competition prototype was a different, smaller build. This repo scales the concept to an industrial cell: the link lengths, joint limits, hardware BOM and firmware architecture are design choices documented in [`docs/DESIGN.md`](docs/DESIGN.md), not measurements of the hackathon hardware.
+
+![Teach-mode load cycle replayed in Gazebo Harmonic](docs/load_cycle_gazebo.gif)
+
+*Gazebo Harmonic + gz_ros2_control, headless, recorded by `tools/run_cycle_demo.sh`: pick a raw part from the stand, insert it into the chuck, retract, return home. Cell fixtures are visual only (no contact physics).*
 
 ---
 
@@ -26,7 +30,7 @@
 | Fault detection: load-cycle trajectory | **90.0%** fault-free; 13× E04 near-singular (home pose) | `analysis/fault_detector.py` |
 | OPC-UA interface | 8 nodes (state/cycles/joints/EE/e-stop/faults), verified with a live asyncua client | `lathe_arm_opcua/` |
 | Build cost (BOM) | **₹ 52,370** (STM32F446RE + 5× Dynamixel XM430) | `firmware/bom.csv` |
-| Load/unload cycle time (sim, recorded) | — s | record rosbag after sim run |
+| Teach-mode cycle in Gazebo (8 waypoints, 2 s each) | **all 8 goals reached**, 0 rejected | `tools/run_cycle_demo.sh` |
 
 ---
 
@@ -95,8 +99,13 @@ source install/setup.bash
 # Visualise in RViz (no Gazebo — drag joint sliders)
 ros2 launch lathe_arm_bringup rviz.launch.py
 
-# Full simulation (Gazebo + ros2_control)
-ros2 launch lathe_arm_bringup sim.launch.py
+# Full simulation (Gazebo + ros2_control) in the lathe cell
+ros2 launch lathe_arm_bringup sim.launch.py                 # Gazebo GUI
+ros2 launch lathe_arm_bringup sim.launch.py headless:=true  # server only
+
+# Headless recorded run of the example cycle, then encode the video
+tools/run_cycle_demo.sh demo_run
+tools/make_demo_video.sh demo_run/frames docs/load_cycle_gazebo 2
 
 # Teach mode (second terminal after sim is running)
 ros2 run lathe_arm_teach teach_node --ros-args -p output:=my_cycle.yaml
@@ -177,9 +186,10 @@ The lathe-loading idea placed **1st runner-up (₹75,000) at the DriveNext RANE 
 - [x] M3: Cycle time estimator — 5.55 s, workspace analysis complete
 - [x] M4: Industrial URDF (L=0.18/0.35/0.30/0.09/0.065 m), firmware BOM, 28/28 tests pass
 - [x] M5: Cartesian path planner, batch scheduler, OPC-UA interface, fault detector — 60/60 tests
-- [ ] M6: Load/unload cycle in Gazebo sim + rosbag cycle time measurement
-- [ ] M7: Teach mode end-to-end tested in sim
-- [ ] M8: Gazebo demo GIF
+- [x] M6: Gazebo lathe cell + gz_ros2_control (plugin was missing; added) — controllers active
+- [x] M7: Teach-mode replay end-to-end in sim (fixed `wait_for_server` call and empty `setup.cfg`)
+- [x] M8: Gazebo demo GIF (`docs/load_cycle_gazebo.gif`)
+- [ ] M9: Execute the cycle through MoveIt 2 planning instead of direct joint goals
 
 ---
 
