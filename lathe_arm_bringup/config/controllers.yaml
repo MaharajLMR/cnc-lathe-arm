@@ -1,29 +1,35 @@
 controller_manager:
   ros__parameters:
     update_rate: 100
-
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
-
-    lathe_arm_controller:
+    arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+    gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    linkage_controller:
+      type: forward_command_controller/ForwardCommandController
 
-lathe_arm_controller:
+arm_controller:
   ros__parameters:
-    joints:
-      - joint_1_base_shoulder
-      - joint_2_shoulder_upper
-      - joint_3_upper_elbow
-      - joint_4_elbow_wrist
-      - joint_5_wrist_roll
-    command_interfaces:
-      - position
-    state_interfaces:
-      - position
-      - velocity
-    state_publish_rate: 100.0
-    action_monitor_rate: 20.0
+    joints: [j1_base_yaw, j2_boom_lift, j3_wrist_pitch, j4_wrist_roll]
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
     allow_partial_joints_goal: false
     constraints:
-      stopped_velocity_tolerance: 0.01
+      stopped_velocity_tolerance: 0.02
       goal_time: 5.0
+
+gripper_controller:
+  ros__parameters:
+    joints: [j5_gripper, j5_gripper_mirror]
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
+    constraints:
+      goal_time: 3.0
+
+# Drives the drawn actuator (act_pitch, act_extend) from the boom angle; see linkage_node.
+linkage_controller:
+  ros__parameters:
+    joints: [act_pitch, act_extend]
+    interface_name: position

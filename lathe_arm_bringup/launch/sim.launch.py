@@ -1,8 +1,10 @@
 """
-Launch the 5-DOF lathe arm in Gazebo Harmonic with ros2_control.
+The jib arm in its loading cell, in Gazebo, with the web HMI.
 
-  ros2 launch lathe_arm_bringup sim.launch.py                 # Gazebo GUI
+  ros2 launch lathe_arm_bringup sim.launch.py                 # Gazebo window
   ros2 launch lathe_arm_bringup sim.launch.py headless:=true  # server only (recording)
+
+Then open http://localhost:8000 to drive it.
 """
 
 import os
@@ -18,75 +20,45 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    pkg_desc    = get_package_share_directory("lathe_arm_description")
-    pkg_bringup = get_package_share_directory("lathe_arm_bringup")
-    pkg_gz_sim  = get_package_share_directory("ros_gz_sim")
+    desc = get_package_share_directory("lathe_arm_description")
+    bringup = get_package_share_directory("lathe_arm_bringup")
+    gz_launch = os.path.join(get_package_share_directory("ros_gz_sim"), "launch", "gz_sim.launch.py")
 
-    urdf_xacro = os.path.join(pkg_desc, "urdf", "lathe_arm.urdf.xacro")
-    ctrl_yaml  = os.path.join(pkg_bringup, "config", "controllers.yaml")
-
-    robot_desc = subprocess.run(
-        ["xacro", urdf_xacro], capture_output=True, text=True
-    ).stdout
-
-    world = os.path.join(pkg_bringup, "worlds", "lathe_cell.sdf")
+    robot = subprocess.run(
+        ["xacro", os.path.join(desc, "urdf", "lathe_arm.urdf.xacro"),
+         "controllers:=" + os.path.join(bringup, "config", "controllers.yaml")],
+        capture_output=True, text=True, check=True).stdout
+    world = os.path.join(bringup, "worlds", "lathe_cell.sdf")
     headless = LaunchConfiguration("headless")
-    gz_launch = os.path.join(pkg_gz_sim, "launch", "gz_sim.launch.py")
-    gz_gui = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(gz_launch),
-        launch_arguments={"gz_args": f"-r {world}"}.items(),
-        condition=UnlessCondition(headless),
-    )
-    gz_server = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(gz_launch),
-        launch_arguments={"gz_args": f"-s -r --headless-rendering {world}"}.items(),
-        condition=IfCondition(headless),
-    )
+    sim = {"use_sim_time": True}
 
-    rsp = Node(
-        package="robot_state_publisher",
-        executable="robot_state_publisher",
-        parameters=[{"robot_description": robot_desc, "use_sim_time": True}],
-        output="screen",
-    )
-
-    spawn = Node(
-        package="ros_gz_sim",
-        executable="create",
-        arguments=["-string", robot_desc, "-name", "lathe_arm"],
-        output="screen",
-    )
-
-    bridge = Node(
-        package="ros_gz_bridge",
-        executable="parameter_bridge",
-        arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-                   "/cell/image@sensor_msgs/msg/Image[gz.msgs.Image"],
-    )
-
-    ctrl_spawner = TimerAction(
-        period=3.0,
-        actions=[
-            Node(
-                package="controller_manager",
-                executable="spawner",
-                arguments=["joint_state_broadcaster", "--controller-manager", "/controller_manager"],
-            )
-        ],
-    )
-
-    arm_spawner = TimerAction(
-        period=5.0,
-        actions=[
-            Node(
-                package="controller_manager",
-                executable="spawner",
-                arguments=["lathe_arm_controller", "--controller-manager", "/controller_manager"],
-            )
-        ],
-    )
+    def teach_node(name, **params):
+        return Node(package="lathe_arm_teach", executable=name, parameters=[{**sim, **params}], output="screen")
 
     return LaunchDescription([
         DeclareLaunchArgument("headless", default_value="false"),
-        gz_gui, gz_server, rsp, spawn, bridge, ctrl_spawner, arm_spawner,
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(gz_launch),
+                                 launch_arguments={"gz_args": f"-r {world}"}.items(),
+                                 condition=UnlessCondition(headless)),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(gz_launch),
+                                 launch_arguments={"gz_args": f"-s -r --headless-rendering {world}"}.items(),
+                                 condition=IfCondition(headless)),
+        Node(package="robot_state_publisher", executable="robot_state_publisher",
+             parameters=[{"robot_description": robot, **sim}], output="screen"),
+        Node(package="ros_gz_sim", executable="create",
+             arguments=["-string", robot, "-name", "lathe_arm"], output="screen"),
+        Node(package="ros_gz_bridge", executable="parameter_bridge",
+             arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+                        "/cell/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                        "/part/attach@std_msgs/msg/Empty]gz.msgs.Empty",
+                        "/part/detach@std_msgs/msg/Empty]gz.msgs.Empty"]),
+        TimerAction(period=3.0, actions=[
+            Node(package="controller_manager", executable="spawner",
+                 arguments=["joint_state_broadcaster", "arm_controller", "gripper_controller",
+                            "linkage_controller", "--controller-manager", "/controller_manager"]),
+        ]),
+        teach_node("linkage_node"),
+        teach_node("part_grasp"),
+        teach_node("pot_teleop", source="web"),
+        teach_node("hmi_server"),
     ])

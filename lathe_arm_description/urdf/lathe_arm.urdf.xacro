@@ -1,231 +1,279 @@
 <?xml version="1.0"?>
 <!--
-  5-DOF CNC Lathe Loading Arm, URDF
+  The jib arm from our RANE hackathon robot.
 
-  Industrial proportions for a ~5 kg payload CNC tending arm.
-  Kinematic chain (all revolute):
-    world → base → link_1 (base_shoulder) → link_2 (upper_arm) →
-    link_3 (forearm) → link_4 (wrist_pitch) → link_5 (wrist_roll) → ee_link
+  Black base plate and slewing housing, yellow column (1.5 m to the boom
+  pivot), yellow 1 m boom lifted by a linear actuator, a wrist servo at the
+  boom tip and a blue two-finger gripper hanging below it.
 
-  Joint axes:
-    joint_1: Z (base yaw)
-    joint_2: Y (shoulder pitch)
-    joint_3: Y (elbow pitch, negative bends arm back toward chuck level)
-    joint_4: Y (wrist pitch)
-    joint_5: X (wrist roll)
+  Dimensions match lathe_arm_teach/arm_model.py; tests check they agree.
+  The actuator is drawn as a body (act_body) and a rod (act_rod) on two extra
+  joints that linkage_node keeps in step with the boom, since URDF can't
+  describe the closed loop column - actuator - boom.
 -->
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="lathe_arm">
 
-  <!-- ── Industrial dimensions (metres) ──────────────────────────────────── -->
-  <xacro:property name="L1" value="0.180"/>  <!-- base-to-shoulder height  -->
-  <xacro:property name="L2" value="0.350"/>  <!-- upper arm length          -->
-  <xacro:property name="L3" value="0.300"/>  <!-- forearm length            -->
-  <xacro:property name="L4" value="0.090"/>  <!-- wrist pitch length        -->
-  <xacro:property name="L5" value="0.065"/>  <!-- wrist roll / ee offset    -->
-  <xacro:property name="link_r"  value="0.030"/> <!-- link cross-section radius -->
-  <xacro:property name="base_r" value="0.075"/>  <!-- base cylinder radius -->
+  <xacro:arg name="controllers" default="$(find lathe_arm_bringup)/config/controllers.yaml"/>
 
-  <!-- ── Inertia helpers ─────────────────────────────────────────────────── -->
-  <xacro:macro name="cyl_inertia" params="m r h">
+  <xacro:property name="base_h" value="0.125"/>     <!-- floor to top of slewing housing -->
+  <xacro:property name="pivot_x" value="0.13"/>
+  <xacro:property name="pivot_z" value="1.50"/>
+  <xacro:property name="boom" value="1.00"/>
+  <xacro:property name="col_r" value="0.10"/>
+  <xacro:property name="col_top" value="1.60"/>
+  <xacro:property name="act_low_z" value="0.62"/>
+  <xacro:property name="act_body" value="0.55"/>
+  <xacro:property name="act_rod" value="0.45"/>
+
+  <material name="yellow"><color rgba="0.95 0.75 0.05 1"/></material>
+  <material name="black"><color rgba="0.08 0.08 0.08 1"/></material>
+  <material name="grey"><color rgba="0.55 0.57 0.6 1"/></material>
+  <material name="silver"><color rgba="0.82 0.83 0.85 1"/></material>
+  <material name="blue"><color rgba="0.15 0.32 0.85 1"/></material>
+
+  <xacro:macro name="inertia_box" params="m x y z">
     <inertial>
       <mass value="${m}"/>
-      <inertia ixx="${m*(3*r*r+h*h)/12}" ixy="0" ixz="0"
-               iyy="${m*(3*r*r+h*h)/12}" iyz="0"
-               izz="${m*r*r/2}"/>
+      <inertia ixx="${m*(y*y+z*z)/12}" ixy="0" ixz="0" iyy="${m*(x*x+z*z)/12}" iyz="0" izz="${m*(x*x+y*y)/12}"/>
     </inertial>
   </xacro:macro>
 
-  <!-- ── World / base ─────────────────────────────────────────────────────── -->
   <link name="world"/>
 
-  <joint name="world_fixed" type="fixed">
-    <parent link="world"/>
-    <child  link="base_link"/>
-    <origin xyz="0 0 0" rpy="0 0 0"/>
-  </joint>
-
+  <!-- base plate + slewing housing, bolted to the floor -->
   <link name="base_link">
     <visual>
-      <geometry><cylinder radius="${base_r}" length="0.06"/></geometry>
-      <material name="dark_grey"><color rgba="0.20 0.20 0.20 1"/></material>
+      <origin xyz="0 0 0.0125"/>
+      <geometry><box size="0.70 0.50 0.025"/></geometry>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 0.075"/>
+      <geometry><cylinder radius="0.09" length="0.10"/></geometry>
+      <material name="black"/>
     </visual>
     <collision>
-      <geometry><cylinder radius="${base_r}" length="0.06"/></geometry>
+      <origin xyz="0 0 0.0125"/>
+      <geometry><box size="0.70 0.50 0.025"/></geometry>
     </collision>
-    <inertial><mass value="1.8"/>
-      <inertia ixx="0.010" ixy="0" ixz="0" iyy="0.010" iyz="0" izz="0.010"/>
-    </inertial>
+    <xacro:inertia_box m="40" x="0.7" y="0.5" z="0.1"/>
   </link>
+  <joint name="world_fixed" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+  </joint>
 
-  <!-- ── Joint 1: base yaw ─────────────────────────────────────────────── -->
-  <joint name="joint_1_base_shoulder" type="revolute">
+  <!-- j1: the whole column turns on the slewing bearing -->
+  <link name="column_link">
+    <visual>
+      <origin xyz="0 0 0.0075"/>
+      <geometry><cylinder radius="0.16" length="0.015"/></geometry>
+      <material name="yellow"/>
+    </visual>
+    <visual>
+      <origin xyz="0 0 ${(col_top - base_h) / 2}"/>
+      <geometry><cylinder radius="${col_r}" length="${col_top - base_h}"/></geometry>
+      <material name="yellow"/>
+    </visual>
+    <!-- boom pivot bracket -->
+    <visual>
+      <origin xyz="${pivot_x - 0.02} 0 ${pivot_z - base_h}"/>
+      <geometry><box size="0.08 0.12 0.10"/></geometry>
+      <material name="yellow"/>
+    </visual>
+    <!-- actuator lower bracket -->
+    <visual>
+      <origin xyz="${pivot_x - 0.02} 0 ${act_low_z - base_h}"/>
+      <geometry><box size="0.07 0.08 0.10"/></geometry>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${(col_top - base_h) / 2}"/>
+      <geometry><cylinder radius="${col_r}" length="${col_top - base_h}"/></geometry>
+    </collision>
+    <xacro:inertia_box m="30" x="0.2" y="0.2" z="1.5"/>
+  </link>
+  <joint name="j1_base_yaw" type="revolute">
     <parent link="base_link"/>
-    <child  link="link_1"/>
-    <origin xyz="0 0 0.030" rpy="0 0 0"/>
-    <axis   xyz="0 0 1"/>
-    <limit  lower="-1.5708" upper="1.5708" effort="20.0" velocity="1.5"/>
-    <dynamics damping="0.1"/>
+    <child link="column_link"/>
+    <origin xyz="0 0 ${base_h}"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${-170*pi/180}" upper="${170*pi/180}" effort="400" velocity="0.6"/>
   </joint>
 
-  <link name="link_1">
+  <!-- j2: boom, lifted by the linear actuator -->
+  <link name="boom_link">
     <visual>
-      <origin xyz="0 0 ${L1/2}" rpy="0 0 0"/>
-      <geometry><cylinder radius="${link_r}" length="${L1}"/></geometry>
-      <material name="arm_blue_grey"><color rgba="0.30 0.45 0.60 1"/></material>
+      <origin xyz="${boom / 2} 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry><cylinder radius="0.03" length="${boom}"/></geometry>
+      <material name="yellow"/>
+    </visual>
+    <!-- square end plate at the tip -->
+    <visual>
+      <origin xyz="${boom} 0 0"/>
+      <geometry><box size="0.012 0.11 0.11"/></geometry>
+      <material name="yellow"/>
     </visual>
     <collision>
-      <origin xyz="0 0 ${L1/2}" rpy="0 0 0"/>
-      <geometry><cylinder radius="${link_r}" length="${L1}"/></geometry>
+      <origin xyz="${boom / 2} 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry><cylinder radius="0.03" length="${boom}"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="1.2" r="${link_r}" h="${L1}"/>
+    <xacro:inertia_box m="6" x="1.0" y="0.06" z="0.06"/>
   </link>
-
-  <!-- ── Joint 2: shoulder pitch ───────────────────────────────────────────── -->
-  <joint name="joint_2_shoulder_upper" type="revolute">
-    <parent link="link_1"/>
-    <child  link="link_2"/>
-    <origin xyz="0 0 ${L1}" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
-    <limit  lower="-1.0" upper="1.9" effort="20.0" velocity="1.5"/>
-    <dynamics damping="0.1"/>
+  <joint name="j2_boom_lift" type="revolute">
+    <parent link="column_link"/>
+    <child link="boom_link"/>
+    <origin xyz="${pivot_x} 0 ${pivot_z - base_h}"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="${-30*pi/180}" upper="${45*pi/180}" effort="600" velocity="0.4"/>
   </joint>
 
-  <link name="link_2">
+  <!-- linear actuator, drawn only (see linkage_node) -->
+  <link name="act_body">
     <visual>
-      <origin xyz="${L2/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r}" length="${L2}"/></geometry>
-      <material name="arm_blue_grey"><color rgba="0.30 0.45 0.60 1"/></material>
+      <origin xyz="${act_body / 2} 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry><cylinder radius="0.028" length="${act_body}"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <visual>
+      <origin xyz="0.05 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry><cylinder radius="0.04" length="0.10"/></geometry>
+      <material name="black"/>
+    </visual>
+    <xacro:inertia_box m="0.5" x="0.55" y="0.06" z="0.06"/>
+  </link>
+  <joint name="act_pitch" type="revolute">
+    <parent link="column_link"/>
+    <child link="act_body"/>
+    <origin xyz="${pivot_x} 0 ${act_low_z - base_h}"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="0" upper="${pi}" effort="100" velocity="2"/>
+  </joint>
+  <link name="act_rod">
+    <visual>
+      <origin xyz="${act_rod / 2} 0 0" rpy="0 ${pi/2} 0"/>
+      <geometry><cylinder radius="0.016" length="${act_rod}"/></geometry>
+      <material name="silver"/>
+    </visual>
+    <xacro:inertia_box m="0.2" x="0.45" y="0.03" z="0.03"/>
+  </link>
+  <joint name="act_extend" type="prismatic">
+    <parent link="act_body"/>
+    <child link="act_rod"/>
+    <origin xyz="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="0.2" upper="0.8" effort="100" velocity="1"/>
+  </joint>
+
+  <!-- j3: wrist pitch servo at the boom tip -->
+  <link name="wrist_link">
+    <visual>
+      <origin xyz="0 0 -0.045"/>
+      <geometry><box size="0.045 0.025 0.05"/></geometry>
+      <material name="black"/>
+    </visual>
+    <xacro:inertia_box m="0.15" x="0.05" y="0.03" z="0.05"/>
+  </link>
+  <joint name="j3_wrist_pitch" type="revolute">
+    <parent link="boom_link"/>
+    <child link="wrist_link"/>
+    <origin xyz="${boom} 0 0"/>
+    <axis xyz="0 -1 0"/>
+    <limit lower="${-135*pi/180}" upper="${135*pi/180}" effort="10" velocity="2"/>
+  </joint>
+
+  <!-- j4: wrist roll servo, then the blue gripper body -->
+  <link name="gripper_link">
+    <visual>
+      <origin xyz="0 0 -0.08"/>
+      <geometry><box size="0.12 0.09 0.09"/></geometry>
+      <material name="blue"/>
+    </visual>
+    <visual>
+      <origin xyz="0.035 0.05 -0.06"/>
+      <geometry><box size="0.04 0.02 0.04"/></geometry>
+      <material name="black"/>
     </visual>
     <collision>
-      <origin xyz="${L2/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r}" length="${L2}"/></geometry>
+      <origin xyz="0 0 -0.08"/>
+      <geometry><box size="0.12 0.09 0.09"/></geometry>
     </collision>
-    <xacro:cyl_inertia m="0.9" r="${link_r}" h="${L2}"/>
+    <xacro:inertia_box m="0.3" x="0.12" y="0.09" z="0.09"/>
   </link>
-
-  <!-- ── Joint 3: elbow pitch ──────────────────────────────────────────────── -->
-  <joint name="joint_3_upper_elbow" type="revolute">
-    <parent link="link_2"/>
-    <child  link="link_3"/>
-    <origin xyz="${L2} 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
-    <limit  lower="-2.1" upper="0.2" effort="15.0" velocity="2.0"/>
-    <dynamics damping="0.1"/>
+  <joint name="j4_wrist_roll" type="revolute">
+    <parent link="wrist_link"/>
+    <child link="gripper_link"/>
+    <origin xyz="0 0 -0.07"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="${-pi/2}" upper="${pi/2}" effort="10" velocity="2"/>
   </joint>
 
-  <link name="link_3">
-    <visual>
-      <origin xyz="${L3/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r * 0.85}" length="${L3}"/></geometry>
-      <material name="arm_blue_grey"><color rgba="0.30 0.45 0.60 1"/></material>
-    </visual>
-    <collision>
-      <origin xyz="${L3/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r * 0.85}" length="${L3}"/></geometry>
-    </collision>
-    <xacro:cyl_inertia m="0.6" r="${link_r}" h="${L3}"/>
-  </link>
+  <!-- j5: fingers, each travels half of the opening. No collision: in sim the
+       part is held by a detachable joint, not by finger friction. -->
+  <xacro:macro name="finger" params="name sign joint">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 ${sign * 0.008} -0.055"/>
+        <geometry><box size="0.03 0.016 0.10"/></geometry>
+        <material name="blue"/>
+      </visual>
+      <xacro:inertia_box m="0.03" x="0.03" y="0.016" z="0.10"/>
+    </link>
+    <joint name="${joint}" type="prismatic">
+      <parent link="gripper_link"/>
+      <child link="${name}"/>
+      <origin xyz="0 ${sign * 0.004} -0.125"/>
+      <axis xyz="0 ${sign} 0"/>
+      <limit lower="0" upper="0.035" effort="20" velocity="0.1"/>
+    </joint>
+  </xacro:macro>
+  <xacro:finger name="finger_left" sign="1" joint="j5_gripper"/>
+  <xacro:finger name="finger_right" sign="-1" joint="j5_gripper_mirror"/>
 
-  <!-- ── Joint 4: wrist pitch ──────────────────────────────────────────────── -->
-  <joint name="joint_4_elbow_wrist" type="revolute">
-    <parent link="link_3"/>
-    <child  link="link_4"/>
-    <origin xyz="${L3} 0 0" rpy="0 0 0"/>
-    <axis   xyz="0 1 0"/>
-    <limit  lower="-1.5708" upper="1.5708" effort="8.0" velocity="2.0"/>
-    <dynamics damping="0.05"/>
+  <!-- fingertip frame, 0.30 m below the wrist pitch axis -->
+  <link name="tool_link"/>
+  <joint name="tool_fixed" type="fixed">
+    <parent link="gripper_link"/>
+    <child link="tool_link"/>
+    <origin xyz="0 0 -0.23"/>
   </joint>
 
-  <link name="link_4">
-    <visual>
-      <origin xyz="${L4/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r * 0.7}" length="${L4}"/></geometry>
-      <material name="silver"><color rgba="0.70 0.70 0.70 1"/></material>
-    </visual>
-    <collision>
-      <origin xyz="${L4/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r * 0.7}" length="${L4}"/></geometry>
-    </collision>
-    <xacro:cyl_inertia m="0.3" r="${link_r * 0.7}" h="${L4}"/>
-  </link>
-
-  <!-- ── Joint 5: wrist roll ───────────────────────────────────────────────── -->
-  <joint name="joint_5_wrist_roll" type="revolute">
-    <parent link="link_4"/>
-    <child  link="link_5"/>
-    <origin xyz="${L4} 0 0" rpy="0 0 0"/>
-    <axis   xyz="1 0 0"/>
-    <limit  lower="-3.14159" upper="3.14159" effort="5.0" velocity="3.0"/>
-    <dynamics damping="0.02"/>
-  </joint>
-
-  <link name="link_5">
-    <visual>
-      <origin xyz="${L5/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r * 0.6}" length="${L5}"/></geometry>
-      <material name="silver"><color rgba="0.70 0.70 0.70 1"/></material>
-    </visual>
-    <collision>
-      <origin xyz="${L5/2} 0 0" rpy="0 1.5708 0"/>
-      <geometry><cylinder radius="${link_r * 0.6}" length="${L5}"/></geometry>
-    </collision>
-    <xacro:cyl_inertia m="0.15" r="${link_r * 0.6}" h="${L5}"/>
-  </link>
-
-  <!-- ── End-effector / gripper tool centre point ─────────────────────────── -->
-  <joint name="ee_fixed" type="fixed">
-    <parent link="link_5"/>
-    <child  link="ee_link"/>
-    <origin xyz="${L5} 0 0" rpy="0 0 0"/>
-  </joint>
-
-  <link name="ee_link">
-    <visual>
-      <geometry><sphere radius="0.018"/></geometry>
-      <material name="orange_ee"><color rgba="1.0 0.5 0.0 1"/></material>
-    </visual>
-    <inertial>
-      <mass value="0.2"/>
-      <inertia ixx="0.0001" ixy="0" ixz="0" iyy="0.0001" iyz="0" izz="0.0001"/>
-    </inertial>
-  </link>
-
-  <!-- ── Gazebo ros2_control plugin ────────────────────────────────────────── -->
   <ros2_control name="lathe_arm" type="system">
     <hardware>
       <plugin>gz_ros2_control/GazeboSimSystem</plugin>
     </hardware>
-    <joint name="joint_1_base_shoulder">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint_2_shoulder_upper">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint_3_upper_elbow">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint_4_elbow_wrist">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
-    <joint name="joint_5_wrist_roll">
-      <command_interface name="position"/>
-      <state_interface name="position"/>
-      <state_interface name="velocity"/>
-    </joint>
+    <xacro:macro name="pos_joint" params="name initial">
+      <joint name="${name}">
+        <command_interface name="position"/>
+        <state_interface name="position"><param name="initial_value">${initial}</param></state_interface>
+        <state_interface name="velocity"/>
+      </joint>
+    </xacro:macro>
+    <xacro:pos_joint name="j1_base_yaw" initial="0.0"/>
+    <xacro:pos_joint name="j2_boom_lift" initial="0.0"/>
+    <xacro:pos_joint name="j3_wrist_pitch" initial="0.0"/>
+    <xacro:pos_joint name="j4_wrist_roll" initial="0.0"/>
+    <xacro:pos_joint name="j5_gripper" initial="0.0"/>
+    <xacro:pos_joint name="j5_gripper_mirror" initial="0.0"/>
+    <xacro:pos_joint name="act_pitch" initial="1.192"/>
+    <xacro:pos_joint name="act_extend" initial="0.497"/>
   </ros2_control>
 
-  <!-- Loads the controller manager inside Gazebo with the bringup controllers. -->
   <gazebo>
     <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-      <parameters>$(find lathe_arm_bringup)/config/controllers.yaml</parameters>
+      <parameters>$(arg controllers)</parameters>
+    </plugin>
+  </gazebo>
+
+  <!-- picks up the part in lathe_cell.sdf; part_grasp attaches/detaches it -->
+  <gazebo>
+    <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <parent_link>gripper_link</parent_link>
+      <child_model>part</child_model>
+      <child_link>link</child_link>
+      <attach_topic>/part/attach</attach_topic>
+      <detach_topic>/part/detach</detach_topic>
+      <suppress_child_warning>true</suppress_child_warning>
     </plugin>
   </gazebo>
 

@@ -2,7 +2,7 @@
 <package format="3">
   <name>lathe_arm_teach</name>
   <version>0.1.0</version>
-  <description>Teach mode: keyboard jog + YAML waypoint save/replay via MoveIt 2.</description>
+  <description>Potentiometer teleop, web HMI and point replay for the jib arm.</description>
   <maintainer email="lmrrajan2005@gmail.com">Maharaj L M R</maintainer>
   <license>MIT</license>
 

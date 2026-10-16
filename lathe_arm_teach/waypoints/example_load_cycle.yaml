@@ -1,29 +1,28 @@
-# Example load/unload cycle waypoints, 5-DOF CNC Lathe Loading Arm
-# Joint angles in radians.
-# Joints: base_shoulder, shoulder_upper, upper_elbow, elbow_wrist, wrist_roll
-# Limits: j1=[-1.57,+1.57]  j2=[-1.0,+1.9]  j3=[-2.1,+0.2]  j4=[-1.57,+1.57]  j5=[-π,+π]
+# Load one part into the lathe chuck.
+# Joints: base yaw, boom lift, wrist pitch, wrist roll (rad), gripper (m per finger).
+# Wrist pitch = -boom keeps the gripper hanging straight down.
+# Gripper 0.030 = open, 0.0215 = closed on the 50 mm part.
 
 waypoints:
   - name: home
-    joints: [0.0, 0.0, 0.0, 0.0, 0.0]
-
-  - name: approach_part
-    joints: [0.0, 0.80, -1.50, 0.50, 0.0]
-
-  - name: grasp_part
-    joints: [0.0, 0.90, -1.70, 0.60, 0.0]
-
-  - name: lift_with_part
-    joints: [0.0, 0.50, -1.20, 0.40, 0.0]
-
-  - name: approach_chuck
-    joints: [1.20, 0.60, -1.40, 0.40, 0.0]
-
-  - name: insert_into_chuck
-    joints: [1.20, 0.65, -1.50, 0.45, 0.0]
-
-  - name: retract_from_chuck
-    joints: [1.20, 0.50, -1.30, 0.35, 0.0]
-
+    joints: [0.0, 0.1745, -0.1745, 0.0, 0.030]
+  - name: above_part
+    joints: [-0.6109, -0.2094, 0.2094, 0.0, 0.030]
+  - name: at_part
+    joints: [-0.6109, -0.4189, 0.4189, 0.0, 0.030]
+  - name: grip
+    joints: [-0.6109, -0.4189, 0.4189, 0.0, 0.0215]
+  - name: lift
+    joints: [-0.6109, -0.0873, 0.0873, 0.0, 0.0215]
+  - name: swing_to_lathe
+    joints: [0.9599, -0.0873, 0.0873, 0.0, 0.0215]
+  - name: above_chuck
+    joints: [0.9599, -0.1396, 0.1396, 0.0, 0.0215]
+  - name: at_chuck
+    joints: [0.9599, -0.3491, 0.3491, 0.0, 0.0215]
+  - name: release
+    joints: [0.9599, -0.3491, 0.3491, 0.0, 0.030]
+  - name: clear
+    joints: [0.9599, -0.1396, 0.1396, 0.0, 0.030]
   - name: home
-    joints: [0.0, 0.0, 0.0, 0.0, 0.0]
+    joints: [0.0, 0.1745, -0.1745, 0.0, 0.030]

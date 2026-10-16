@@ -28,7 +28,7 @@ class Recorder(Node):
         os.makedirs(out, exist_ok=True)
         self.out, self.every = out, every
         self.n_seen = self.n_saved = 0
-        self.waypoint = "waiting for replay"
+        self.waypoint = "-"
         self.create_subscription(Image, "/cell/image", self.on_image, qos_profile_sensor_data)
         self.create_subscription(String, "/replay/current_waypoint", self.on_wp, 10)
 
@@ -42,7 +42,7 @@ class Recorder(Node):
         img = np.frombuffer(msg.data, np.uint8).reshape(msg.height, msg.width, 3)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         t = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
-        lines = [f"t = {t:5.1f} s (sim)", f"teach-mode replay: {self.waypoint}"]
+        lines = [f"t = {t:5.1f} s (sim)", f"point: {self.waypoint}"]
         cv2.rectangle(img, (0, 0), (470, 70), (25, 25, 25), -1)
         for i, line in enumerate(lines):
             cv2.putText(img, line, (10, 28 * (i + 1)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
