@@ -24,7 +24,8 @@ jobs:
             ros-jazzy-gz-ros2-control \
             ros-jazzy-control-msgs \
             ros-jazzy-trajectory-msgs \
-            ros-jazzy-moveit \
+            ros-jazzy-xacro \
+            ros-jazzy-urdf \
             python3-colcon-common-extensions \
             python3-rosdep \
             python3-pytest \
@@ -32,7 +33,6 @@ jobs:
             python3-numpy \
             python3-matplotlib \
             python3-pip
-          pip3 install --break-system-packages --ignore-installed asyncua
           rosdep init 2>/dev/null || true
           rosdep update
           rosdep install --from-paths . --ignore-src -r -y
@@ -44,8 +44,26 @@ jobs:
           colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release
 
       - name: Run unit tests
+        shell: bash
         run: |
+          source /opt/ros/jazzy/setup.bash
           python3 -m pytest tests/ -v
+
+      - name: Check the URDF
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          xacro lathe_arm_description/urdf/lathe_arm.urdf.xacro controllers:=/dev/null > /tmp/lathe_arm.urdf
+          check_urdf /tmp/lathe_arm.urdf
+
+      - name: Run analysis scripts
+        shell: bash
+        run: |
+          source /opt/ros/jazzy/setup.bash
+          export MPLBACKEND=Agg
+          for s in actuator_sizing workspace pot_resolution cycle_time; do
+            python3 analysis/$s.py
+          done
 
       - name: Validate example waypoints YAML
         run: |
