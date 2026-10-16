@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jib arm HMI</title>
+<style>
+body { font-family: sans-serif; margin: 12px; overflow-wrap: anywhere; color: #222; max-width: 960px; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+.row { display: flex; flex-wrap: wrap; gap: 16px; }
+.col { flex: 1 1 320px; min-width: 0; }
+svg { border: 1px solid #ccc; background: #fafafa; width: 100%; height: auto; }
+fieldset { border: 1px solid #ccc; margin: 0 0 12px; }
+label { display: block; margin: 6px 0 2px; font-size: 14px; }
+input[type=range] { width: 100%; }
+button { font-size: 14px; padding: 6px 10px; margin: 2px; }
+button.on { background: #333; color: #fff; }
+#stop { background: #c00; color: #fff; font-weight: bold; padding: 10px 24px; font-size: 16px; }
+table { border-collapse: collapse; font-size: 13px; width: 100%; }
+td, th { border-bottom: 1px solid #ddd; padding: 3px 4px; text-align: left; }
+.small { font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+<h1>Jib arm</h1>
+<p class="small">Mode: <b id="mode">-</b> &nbsp; Tool at <span id="tool">-</span> m &nbsp; Actuator <span id="act">-</span> mm (stroke <span id="stroke">-</span> mm)</p>
+
+<p>
+  <button data-mode="pots">Knobs</button>
+  <button data-mode="web">Sliders</button>
+  <button data-mode="hold">Hold</button>
+  <button id="stop">STOP</button>
+</p>
+
+<div class="row">
+  <div class="col">
+    <svg id="side" viewBox="-0.4 -2.1 2.0 2.15"></svg>
+    <p class="small">Side view (in the plane of the boom)</p>
+    <svg id="top" viewBox="-1.5 -1.5 3 3" style="max-width: 300px"></svg>
+    <p class="small">Top view</p>
+  </div>
+  <div class="col">
+    <fieldset id="sliders">
+      <legend>Sliders</legend>
+      <label>Base <span id="v0"></span></label><input type="range" min="0" max="1" step="0.002" data-i="0">
+      <label>Actuator (boom) <span id="v1"></span></label><input type="range" min="0" max="1" step="0.002" data-i="1">
+      <label>Wrist pitch <span id="v2"></span></label><input type="range" min="0" max="1" step="0.002" data-i="2">
+      <label>Wrist roll <span id="v3"></span></label><input type="range" min="0" max="1" step="0.002" data-i="3">
+      <label>Gripper <span id="v4"></span></label><input type="range" min="0" max="1" step="0.002" data-i="4">
+      <label><input type="checkbox" id="level"> keep gripper vertical</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Teach</legend>
+      <input id="pname" placeholder="point name" size="14">
+      <button id="save">Save point</button>
+      <button id="play">Play</button>
+      <button id="clear">Clear</button>
+      <button id="file">Write to file</button>
+      <table><thead><tr><th>#</th><th>name</th><th>base</th><th>boom</th><th>pitch</th><th>roll</th><th>grip</th><th></th></tr></thead>
+      <tbody id="points"></tbody></table>
+    </fieldset>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const post = (path, body) => fetch(path, {method: "POST", body: JSON.stringify(body || {})});
+const sliders = [...document.querySelectorAll("#sliders input[type=range]")];
+let dragging = false, geo = null, lastPoints = "";
+
+sliders.forEach((s) => {
+  s.addEventListener("pointerdown", () => dragging = true);
+  s.addEventListener("pointerup", () => dragging = false);
+  s.addEventListener("input", () => post("/pots", {f: sliders.map((x) => +x.value)}));
+});
+document.querySelectorAll("[data-mode]").forEach((b) =>
+  b.onclick = () => post("/mode", {mode: b.dataset.mode}));
+$("stop").onclick = () => post("/stop");
+$("level").onchange = (e) => post("/keep_level", {on: e.target.checked});
+$("save").onclick = () => { post("/point/save", {name: $("pname").value}); $("pname").value = ""; };
+$("play").onclick = () => post("/play");
+$("clear").onclick = () => { if ($("clear").dataset.sure) { post("/point/clear"); delete $("clear").dataset.sure; $("clear").textContent = "Clear"; }
+                             else { $("clear").dataset.sure = 1; $("clear").textContent = "Sure?"; } };
+$("file").onclick = () => post("/save");
+
+function line(x1, y1, x2, y2, color, w, cap) {
+  return `<line x1="${x1}" y1="${-y1}" x2="${x2}" y2="${-y2}" stroke="${color}" stroke-width="${w}" stroke-linecap="${cap || "round"}"/>`;
+}
+
+function drawSide(q) {
+  const g = geo, b = q[1], p = q[1] + q[2];
+  const tipX = g.pivot_x + g.boom * Math.cos(b), tipZ = g.pivot_z + g.boom * Math.sin(b);
+  const ax = g.pivot_x + g.act_on_boom * Math.cos(b), az = g.pivot_z + g.act_on_boom * Math.sin(b);
+  // gripper hangs down from the wrist when pitch cancels the boom angle
+  const toolX = tipX + g.tool * Math.sin(p), toolZ = tipZ - g.tool * Math.cos(p);
+  let s = line(-0.35, 0.01, 0.35, 0.01, "#111", 0.025);                 // base plate
+  s += line(0, 0.02, 0, 1.6, "#e0b000", 0.2, "butt");                     // column
+  s += line(g.act_low[0], g.act_low[1], ax, az, "#999", 0.05);            // actuator
+  s += line(g.pivot_x, g.pivot_z, tipX, tipZ, "#e0b000", 0.06);           // boom
+  s += line(tipX, tipZ, toolX, toolZ, "#2650d8", 0.07);                   // wrist + gripper
+  s += line(-0.4, 0, 1.6, 0, "#bbb", 0.005);                              // floor
+  $("side").innerHTML = s;
+}
+
+function drawTop(q) {
+  const r = geo.pivot_x + geo.boom * Math.cos(q[1]);
+  const x = r * Math.cos(q[0]), y = r * Math.sin(q[0]);
+  let s = `<circle cx="0" cy="0" r="1.45" fill="none" stroke="#ddd" stroke-width="0.01"/>`;
+  s += `<circle cx="0" cy="0" r="0.1" fill="#e0b000"/>`;
+  s += line(0, 0, x, y, "#e0b000", 0.06);
+  s += `<circle cx="${x}" cy="${-y}" r="0.05" fill="#2650d8"/>`;
+  $("top").innerHTML = s;
+}
+
+function drawPoints(points) {
+  const key = JSON.stringify(points);
+  if (key === lastPoints) return;
+  lastPoints = key;
+  $("points").innerHTML = points.map((p, i) => {
+    const d = p.joints.slice(0, 4).map((v) => (v * 180 / Math.PI).toFixed(0));
+    return `<tr><td>${i + 1}</td><td>${p.name}</td><td>${d.join("</td><td>")}</td><td>${(p.joints[4] * 2000).toFixed(0)}</td>` +
+           `<td><button onclick="post('/point/delete',{i:${i}})">x</button></td></tr>`;
+  }).join("");
+}
+
+async function refresh() {
+  try {
+    const st = await (await fetch("/state")).json();
+    geo = st.geometry;
+    $("mode").textContent = st.mode;
+    $("tool").textContent = st.tool.join(", ");
+    $("act").textContent = st.actuator_mm;
+    $("stroke").textContent = st.stroke_mm;
+    $("level").checked = st.keep_level;
+    document.querySelectorAll("[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === st.mode));
+    const names = ["deg", "deg", "deg", "deg", "mm"];
+    st.deg.forEach((v, i) => $("v" + i).textContent = v.toFixed(i === 4 ? 0 : 1) + " " + names[i]);
+    const f = st.mode === "pots" ? st.knobs : st.web_pots;
+    if (f && !dragging) sliders.forEach((s, i) => s.value = f[i]);
+    sliders.forEach((s) => s.disabled = st.mode !== "web");
+    drawSide(st.q);
+    drawTop(st.q);
+    drawPoints(st.points);
+  } catch (e) {
+    $("mode").textContent = "no connection";
+  }
+}
+setInterval(refresh, 200);
+refresh();
+</script>
+</body>
+</html>
