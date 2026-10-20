@@ -40,7 +40,27 @@ URDF can't have a closed loop (column, actuator, boom), so the drawn actuator is
 
 ## Keeping the gripper vertical
 
-Fingertips are straight below the wrist when j3 = -j2. The HMI has a toggle for this, and it is on by default, because a part dropped into a chuck should go in straight. The toggle only affects the pot and HMI path. The waypoints in the example cycle already have it built in.
+Fingertips are straight below the wrist when j3 = -j2. The HMI has a toggle for this, and it is on by default, because a billet going into a chuck should go in straight. The toggle only affects the pot and HMI path. The waypoints in the example cycle already have it built in.
+
+Holding the wrist level uses up a degree of freedom. With j3 tied to j2 the boom angle is the only thing left in the vertical plane, so the fingertips can only move along one curve: substituting j3 = -j2 into the forward kinematics gives
+
+```
+r = 0.13 + 1.00 cos(j2)
+z = 1.20 + 1.00 sin(j2)
+```
+
+which is a circle of radius 1.0 m centred at r = 0.13, z = 1.20. The arm cannot go straight up and it cannot push straight out. Raising the gripper 0.20 m near the tray costs 0.05 m of reach, and that is not a tuning problem, it is the shape of the machine.
+
+`cell.level_point` returns points on that circle, and every carrying waypoint is one, so the billet stays flat from the tray to the chuck.
+
+## Loading a horizontal lathe
+
+The real machine was a CNC lathe with horizontal tooling, so the chuck faces sideways and the billet has to travel along the spindle axis to get in. From the circle above, the only horizontal motion that keeps the gripper level is the base swing: j1 does not appear in r or z at all.
+
+So the machine stands side-on to the arm, spindle running across the arm's view, and the insertion is a j1 sweep. Two consequences:
+
+- The billet has to lie along the spindle, but it has to lie radially on the tray or the fingers cannot close across it. j4 is a quarter turn, which is exactly its ±90° range, so the cycle rolls the wrist to 1.5707 rad after the lift and leaves it there until the billet is in.
+- A j1 sweep is an arc and the spindle is a straight line. They touch at the seated point and separate after that: 130 mm along the axis is 7 mm of radial drift. `make_waypoints.py` solves the two axis points as Cartesian targets instead of as a yaw offset, so the boom and wrist absorb the drift. The cost is 1.5° of gripper pitch at the start of the push, which `tests/test_waypoints.py` caps at 2.5°.
 
 ## Move timing
 
@@ -48,10 +68,16 @@ Joint speeds are limited to 0.5, 0.35, 1.5 and 1.5 rad/s for j1 to j4, a bit und
 
 ## The Gazebo cell
 
-`lathe_arm_bringup/worlds/lathe_cell.sdf` has the part stand, a 50 mm by 100 mm part, a vertical lathe with the chuck facing up, a yellow circle on the floor and the camera used for the recordings. The grip point on the stand is (0.855, -0.599, 0.793) and the chuck grip point is (0.614, 0.877, 0.858). `tests/test_waypoints.py` checks the `at_part` and `at_chuck` points put the fingertips within 1 cm of those.
+`lathe_arm_bringup/worlds/lathe_cell.sdf` has a job tray with five pockets 70 mm apart, five 50 mm by 100 mm billets, a horizontal CNC lathe (cabinet, slant bed, headstock, chuck, turret, tailstock, splash guards), a yellow circle on the floor and the camera used for the recordings. The machine is open on the top and on the arm's side so the gripper can come down between the chuck and the tailstock.
 
-The part is held by a detachable joint (see `part_grasp.py`), not by finger friction.
+The numbers in the SDF are not typed in twice. `lathe_arm_teach/cell.py` holds the geometry, `tools/make_waypoints.py` prints the poses the world needs, and `tests/test_cell.py` parses the SDF and fails if it has drifted from `cell.py`. There is also a test that the spindle nose and the quill are laid flat, so nobody turns it back into a vertical machine by accident.
+
+Current layout: the tray is at yaw -35°, r 1.052, billet axes at z 0.857. The lathe is at yaw 55°, r 1.106, spindle centreline at z 1.026. Those two radii are not free: they fall out of the heights through `level_pose`.
+
+The billet is held by a detachable joint (see `part_grasp.py`), not by finger friction. The chuck has a second one. The chuck is its own model pinned to the world with a fixed joint rather than a static model, because a detachable joint needs a real body on both ends. `part_grasp` waits 0.3 s between releasing the gripper's joint and closing the chuck's, so the two are never attached to the same body at once.
 
 ## Running the cycle
 
-In the last headless run the part ended at (0.614, 0.877, 0.898), which is in the chuck, with one attach and one release in the log. `replay_node` took 28.9 s for the whole file in that run.
+In the last headless run the billet ended at (0.6342, 0.9057, 1.0260) with its axis along the spindle, which is the seated point to within 0.2 mm, and the log has one attach and one seat. `replay_node` took 38.9 s for the whole file in that run. `cycle_time.py` says 38.0 s at a fixed 3 s per move and 24.5 s speed-limited.
+
+The first attempt dropped it. part_grasp used to open the gripper's joint and close the chuck's 0.3 s later, which was fine when the chuck faced up and the billet just sat on it. On a horizontal spindle 0.3 s is long enough to fall 0.2 m onto the cabinet, which is exactly where it ended up. The chuck's joint now closes first and the gripper's opens 0.15 s after.

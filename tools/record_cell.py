@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Record the Gazebo cell camera to numbered PNG frames.
+"""Record the Gazebo cell cameras to numbered PNG frames.
 
-Subscribes to /cell/image (bridged by sim.launch.py) and
-/replay/current_waypoint, and captions each frame with sim time and the
-waypoint the arm is moving to. Encode with tools/make_demo_video.sh.
+Subscribes to /cell/image and /cell/closeup (both bridged by sim.launch.py)
+and to /replay/current_waypoint, and captions each frame with sim time and the
+point the arm is moving to. Frames go to <out>/<camera>/. Encode them with
+tools/make_demo_video.sh.
 
 Usage:
     python3 tools/record_cell.py --out /tmp/frames --every 3
@@ -20,24 +21,30 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 
+CAMERAS = {"wide": "/cell/image", "closeup": "/cell/closeup"}
+
 
 class Recorder(Node):
     def __init__(self, out: str, every: int):
         super().__init__("cell_recorder", parameter_overrides=[
             rclpy.parameter.Parameter("use_sim_time", value=True)])
-        os.makedirs(out, exist_ok=True)
         self.out, self.every = out, every
-        self.n_seen = self.n_saved = 0
+        self.n_seen = {c: 0 for c in CAMERAS}
+        self.n_saved = {c: 0 for c in CAMERAS}
         self.waypoint = "-"
-        self.create_subscription(Image, "/cell/image", self.on_image, qos_profile_sensor_data)
+        for cam in CAMERAS:
+            os.makedirs(os.path.join(out, cam), exist_ok=True)
+        for cam, topic in CAMERAS.items():
+            self.create_subscription(
+                Image, topic, lambda m, c=cam: self.on_image(m, c), qos_profile_sensor_data)
         self.create_subscription(String, "/replay/current_waypoint", self.on_wp, 10)
 
     def on_wp(self, msg: String) -> None:
         self.waypoint = msg.data
 
-    def on_image(self, msg: Image) -> None:
-        self.n_seen += 1
-        if self.n_seen % self.every:
+    def on_image(self, msg: Image, cam: str) -> None:
+        self.n_seen[cam] += 1
+        if self.n_seen[cam] % self.every:
             return
         img = np.frombuffer(msg.data, np.uint8).reshape(msg.height, msg.width, 3)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
@@ -47,8 +54,8 @@ class Recorder(Node):
         for i, line in enumerate(lines):
             cv2.putText(img, line, (10, 28 * (i + 1)), cv2.FONT_HERSHEY_SIMPLEX, 0.7,
                         (240, 240, 240), 2, cv2.LINE_AA)
-        cv2.imwrite(os.path.join(self.out, f"frame_{self.n_saved:05d}.png"), img)
-        self.n_saved += 1
+        cv2.imwrite(os.path.join(self.out, cam, f"frame_{self.n_saved[cam]:05d}.png"), img)
+        self.n_saved[cam] += 1
 
 
 def main():
@@ -63,7 +70,7 @@ def main():
     except KeyboardInterrupt:
         pass
     finally:
-        node.get_logger().info(f"saved {node.n_saved} frames to {args.out}")
+        node.get_logger().info(f"saved {dict(node.n_saved)} to {args.out}")
         node.destroy_node()
         rclpy.try_shutdown()
 
