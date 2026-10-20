@@ -64,7 +64,9 @@ Then open http://localhost:8000 for the HMI. To play the example cycle:
 ros2 run lathe_arm_teach replay_node --ros-args -p waypoints:=$(ros2 pkg prefix lathe_arm_teach)/share/lathe_arm_teach/waypoints/example_load_cycle.yaml
 ```
 
-`tools/run_cycle_demo.sh <out_dir>` does a headless run and records both cell cameras, and `tools/make_demo_video.sh` turns them into the gif and mp4. The second camera sits inside the guards by the tailstock, because the wide one has to shoot past the column and ends up too far back to see the billet go in.
+`tools/run_cycle_demo.sh <out_dir>` does a headless run and records four cameras: the whole cell, the machine on its own, the tray during the pick, and the chuck from inside the guards. `tools/make_showcase_video.sh <out_dir>` cuts them into the demo video and the README gif.
+
+There is a camera inside the guards because the wide one has to shoot past the column to see into the machine, and square on to the open side puts the column right in front of the chuck. From far enough round to miss it, the billet is too small to see.
 
 ![the HMI](docs/hmi.png)
 
@@ -78,6 +80,12 @@ flowchart LR
 The gripper is 0.030 m per finger when open and 0.0215 m when closed on the 50 mm billet.
 
 I don't write those angles by hand any more. The cell dimensions are in `lathe_arm_teach/cell.py` and `tools/make_waypoints.py` solves the arm for them and writes the YAML, so moving the lathe is one number.
+
+### The machine
+
+The lathe in the sim is a slant-bed turning centre, 2.05 m long and 1.40 m deep: cast base on levelling feet, sheet metal over it, headstock and chuck at the left, 8-station turret behind the spindle line, tailstock with a quill and live centre at the right, way covers over the bed, chip conveyor out of the back corner, swing-arm control panel with a screen and an e-stop, and a three-colour status light on top. The sliding door is parked open past the headstock.
+
+One thing about it is not like a real machine. The front guard stops at 1.25 m and the work zone is open above that, because the arm reaches in over it rather than through the door. The boom pivot is at 1.50 m and the gripper hangs about 0.30 m below the boom, so anything taller than that where the arm swings across gets hit. Everything tall on the machine is behind the spindle or past the ends, out of the swing. A real cell would put a taller gantry over the machine instead of cutting the guard down. `cell.GUARD_TOP` is that height and a test fails if the guard rail creeps above it.
 
 ### Why the billet goes in sideways
 
@@ -98,7 +106,7 @@ Each of these comes from a script in `analysis/` and uses the estimated dimensio
 - Actuator (`actuator_sizing.py`): the boom range of -30 to 45 degrees needs a 387 mm stroke (767 to 1154 mm). The moment arm is 189 to 350 mm. The peak push is 140 N at 45 degrees with a 0.3 kg part, so I would pick an actuator rated for 300 N or more.
 - Workspace (`workspace.py`): with the gripper kept vertical it reaches 0.84 to 1.13 m out and 0.70 to 1.91 m high. The tray (r 1.052) and the chuck (r 1.106) are both inside that, which is what fixes where they go: pick the heights and the radii follow.
 - Pot resolution (`pot_resolution.py`): the deadband is 1.36 degrees at the base and 1.55 mm on the actuator, which is about 4.9 mm at the gripper.
-- Cycle time (`cycle_time.py`): the cycle is 38.0 s with a fixed 3 s per move and 24.5 s when each move gets the time its slowest joint needs. In one Gazebo run `replay_node` took 38.9 s from start to finish, which also includes the first move from the zero pose to home. That is a single run, I haven't averaged several.
+- Cycle time (`cycle_time.py`): the cycle is 41.0 s with a fixed 3 s per move and 27.4 s when each move gets the time its slowest joint needs. In one Gazebo run `replay_node` took 35.7 s from start to finish, which also includes the first move from the zero pose to home. That is a single run, I haven't averaged several.
 
 ![workspace](analysis/results/workspace.png)
 ![actuator](analysis/results/actuator.png)

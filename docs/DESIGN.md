@@ -60,6 +60,8 @@ The real machine was a CNC lathe with horizontal tooling, so the chuck faces sid
 So the machine stands side-on to the arm, spindle running across the arm's view, and the insertion is a j1 sweep. Two consequences:
 
 - The billet has to lie along the spindle, but it has to lie radially on the tray or the fingers cannot close across it. j4 is a quarter turn, which is exactly its ±90° range, so the cycle rolls the wrist to 1.5707 rad after the lift and leaves it there until the billet is in.
+- The machine has to stay under the arm. The boom pivot is at 1.50 m and the gripper hangs about 0.30 m below the boom, so the lowest part of the arm over the machine is around 1.33 m. Anything taller than that in the swept path gets hit, which rules out loading a 1.8 m machine through a roof hatch with this arm: it cannot get over the roof. The front guard stops at 1.25 m (`cell.GUARD_TOP`) and the arm goes in over it, with the tall parts of the machine all behind the spindle or past the ends where the arm never reaches. A test fails if the guard rail creeps above that height, and another checks the carry waypoints stay above it.
+- The swing across is a single height. `raise_to_clear` and `over_machine` are the same pose apart from j1, so the billet is at its carry height for the whole sweep. Before that waypoint existed the move ramped up in height on the way across and the billet passed the front guard low.
 - A j1 sweep is an arc and the spindle is a straight line. They touch at the seated point and separate after that: 130 mm along the axis is 7 mm of radial drift. `make_waypoints.py` solves the two axis points as Cartesian targets instead of as a yaw offset, so the boom and wrist absorb the drift. The cost is 1.5° of gripper pitch at the start of the push, which `tests/test_waypoints.py` caps at 2.5°.
 
 ## Move timing
@@ -78,6 +80,6 @@ The billet is held by a detachable joint (see `part_grasp.py`), not by finger fr
 
 ## Running the cycle
 
-In the last headless run the billet ended at (0.6342, 0.9057, 1.0260) with its axis along the spindle, which is the seated point to within 0.2 mm, and the log has one attach and one seat. `replay_node` took 38.9 s for the whole file in that run. `cycle_time.py` says 38.0 s at a fixed 3 s per move and 24.5 s speed-limited.
+In the last headless run the billet ended at (0.6342, 0.9057, 1.0260) with its axis along the spindle, which is the seated point to within 0.2 mm, and the log has one attach and one seat. `replay_node` took 35.7 s for the whole file in that run. `cycle_time.py` says 41.0 s at a fixed 3 s per move and 27.4 s speed-limited.
 
 The first attempt dropped it. part_grasp used to open the gripper's joint and close the chuck's 0.3 s later, which was fine when the chuck faced up and the billet just sat on it. On a horizontal spindle 0.3 s is long enough to fall 0.2 m onto the cabinet, which is exactly where it ended up. The chuck's joint now closes first and the gripper's opens 0.15 s after.
