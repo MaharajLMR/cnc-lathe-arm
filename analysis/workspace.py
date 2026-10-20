@@ -1,5 +1,5 @@
 """
-Where the gripper can reach, side and top view, with the part stand and the
+Where the gripper can reach, side and top view, with the job tray and the
 lathe chuck from the sim cell marked.
 
 The dark line is the reach with the gripper kept vertical (wrist pitch
@@ -22,8 +22,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "lathe_arm_teach"))
 from lathe_arm_teach import arm_model as m  # noqa: E402
 
 OUT = Path(__file__).parent / "results"
-STAND = (0.855, -0.599, 0.793)   # grip point on the part stand (lathe_cell.sdf)
-CHUCK = (0.614, 0.877, 0.858)    # grip point when the part sits in the chuck
+from lathe_arm_teach import cell  # noqa: E402
+
+STAND = cell.PICK      # grip point on the billet in the tray
+CHUCK = cell.CHUCK     # grip point with the billet seated in the chuck
 
 
 def sweep(n=120):
@@ -52,7 +54,7 @@ def main():
           f"height {min(p[2] for p in arc):.2f} to {max(p[2] for p in arc):.2f} m")
     print(f"wrist free:       radius up to {max(p[0] for p in pts):.2f} m, "
           f"height {min(p[1] for p in pts):.2f} to {max(p[1] for p in pts):.2f} m")
-    for name, (x, y, z) in (("part stand", STAND), ("chuck", CHUCK)):
+    for name, (x, y, z) in (("job tray", STAND), ("chuck", CHUCK)):
         print(f"{name:11s} r {math.hypot(x, y):.3f} m, yaw {math.degrees(math.atan2(y, x)):.0f} deg, "
               f"z {z:.3f} m, reachable: {m.inverse(x, y, z) is not None}")
 
