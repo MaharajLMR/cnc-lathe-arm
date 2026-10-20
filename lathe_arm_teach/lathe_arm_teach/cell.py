@@ -42,7 +42,14 @@ SPINDLE_Z = 1.026
 JAW_FACE = 0.010       # chuck face, along the spindle axis from the loaded billet centre
 APPROACH = 0.130       # how far back along the axis the arm lines up before going in
 LIFT = 0.200           # straight-up clearance after gripping
-CLEAR = 0.260          # clearance above the machine on the way in and out
+CLEAR = 0.350          # fingertip height for the swing across, above the front guard
+
+# How tall the machine can be where the arm swings over it. The boom pivot is
+# at 1.50 m and the gripper hangs about 0.30 m below the boom, so anything
+# taller than this in the swept path gets hit. It is why the loading side of
+# the machine is cut down and the tall parts are all behind the spindle or
+# past the ends. A real cell would use a taller gantry instead.
+GUARD_TOP = SPINDLE_Z - GRIP_RISE + CLEAR - 0.08
 
 
 def level_pose(tip_z: float):

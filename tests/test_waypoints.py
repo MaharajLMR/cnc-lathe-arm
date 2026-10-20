@@ -12,11 +12,11 @@ POINTS = yaml.safe_load((ROOT / "lathe_arm_teach/waypoints/example_load_cycle.ya
 BY_NAME = {p["name"]: p["joints"] for p in POINTS}
 
 LEVEL = ("above_billet", "at_billet", "grip", "lift", "turn_to_spindle",
-         "over_machine", "into_chuck", "release", "clear_machine")
+         "raise_to_clear", "over_machine", "into_chuck", "release", "clear_machine")
 
 
 def test_five_values_each():
-    assert len(POINTS) == 13
+    assert len(POINTS) == 14
     for p in POINTS:
         assert len(p["joints"]) == 5, p["name"]
 
@@ -82,3 +82,20 @@ def test_the_wrist_is_rolled_before_the_billet_goes_near_the_machine():
 def test_clearance_above_the_pick_and_the_machine():
     assert am.tool_position(BY_NAME["above_billet"])[2] > am.tool_position(BY_NAME["at_billet"])[2] + 0.05
     assert am.tool_position(BY_NAME["over_machine"])[2] > am.tool_position(BY_NAME["into_chuck"])[2] + 0.05
+
+
+def test_the_swing_across_happens_at_one_height():
+    """The machine's front guard is just under the carried billet. If the swing
+    ramped up in height instead, the billet would clip it on the way in."""
+    a = am.tool_position(BY_NAME["raise_to_clear"])
+    b = am.tool_position(BY_NAME["over_machine"])
+    assert a[2] == pytest.approx(b[2], abs=1e-4)
+    assert a[2] == pytest.approx(cell.CHUCK_TIP_Z + cell.CLEAR, abs=1e-4)
+    # only the base yaw changes between them
+    for i in (1, 2, 3, 4):
+        assert BY_NAME["raise_to_clear"][i] == pytest.approx(BY_NAME["over_machine"][i], abs=1e-4)
+
+
+def test_the_carried_billet_clears_the_front_guard():
+    for name in ("raise_to_clear", "over_machine", "clear_machine"):
+        assert am.tool_position(BY_NAME[name])[2] > cell.GUARD_TOP, name

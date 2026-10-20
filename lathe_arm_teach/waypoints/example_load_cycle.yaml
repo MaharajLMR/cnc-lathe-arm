@@ -18,8 +18,10 @@ waypoints:
     joints: [-0.6109, -0.1891, 0.1891, 0.0000, 0.0215]
   - name: turn_to_spindle
     joints: [-0.6109, -0.1891, 0.1891, 1.5707, 0.0215]
+  - name: raise_to_clear
+    joints: [-0.6109, 0.1314, -0.1314, 1.5707, 0.0215]
   - name: over_machine
-    joints: [0.8429, 0.0410, -0.0410, 1.5707, 0.0215]
+    joints: [0.8429, 0.1314, -0.1314, 1.5707, 0.0215]
   - name: on_spindle_axis
     joints: [0.8429, -0.2209, 0.2464, 1.5707, 0.0215]
   - name: into_chuck
@@ -29,6 +31,6 @@ waypoints:
   - name: withdraw
     joints: [0.8429, -0.2209, 0.2464, 1.5707, 0.0300]
   - name: clear_machine
-    joints: [0.8429, 0.0410, -0.0410, 1.5707, 0.0300]
+    joints: [0.8429, 0.1314, -0.1314, 1.5707, 0.0300]
   - name: home
     joints: [0.0000, 0.1745, -0.1745, 0.0000, 0.0300]

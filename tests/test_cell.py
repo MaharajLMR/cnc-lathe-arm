@@ -82,3 +82,30 @@ def test_chuck_can_take_the_billet_off_the_gripper():
     assert plugin is not None and "DetachableJoint" in plugin.get("name")
     assert plugin.find("child_model").text == "part"
     assert plugin.find("attach_topic").text == "/chuck/attach"
+
+
+def test_the_loading_side_stays_under_the_arm():
+    """The arm swings over the front guard rather than through a door, so the
+    guard rail has to stay below the height the billet is carried at."""
+    rail = model("lathe").find("link/visual[@name='guard_rail']")
+    _, _, z = [float(v) for v in rail.find("pose").text.split()[:3]]
+    thickness = float(rail.find("geometry/box/size").text.split()[2])
+    assert z + thickness / 2 <= cell.GUARD_TOP + 1e-6
+
+
+def test_the_machine_looks_like_a_lathe():
+    """Cheap guard against the model quietly losing the parts that make it read
+    as a CNC lathe rather than a grey box."""
+    names = {v.get("name") for v in model("lathe").findall("link/visual")}
+    for part in ("slant_bed", "headstock", "spindle_nose", "turret", "tailstock",
+                 "quill", "window", "panel_screen", "light_green", "conveyor",
+                 "door_panel", "guard_rail"):
+        assert part in names, part
+
+
+def test_every_camera_has_its_own_topic():
+    topics = [s.find("topic").text
+              for m in WORLD.findall("model")
+              for s in m.findall("link/sensor")
+              if s.get("type") == "camera" and s.find("topic") is not None]
+    assert sorted(topics) == ["/cell/closeup", "/cell/image", "/cell/machine", "/cell/pick"]
