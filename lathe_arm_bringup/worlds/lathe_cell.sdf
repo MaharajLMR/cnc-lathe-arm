@@ -2,9 +2,9 @@
 <!--
   Loading cell for the jib arm. Column axis at the origin, z up.
 
-  A horizontal CNC lathe, which is what we loaded at the hackathon: the spindle
-  lies flat and the billet goes into the chuck along that axis, not down onto it.
-  A job tray next to the arm holds five billets lying radially in pockets.
+  A horizontal CNC turning centre, which is what we loaded at the hackathon:
+  the spindle lies flat and the billet goes into the chuck along that axis, not
+  down onto it. A job tray next to the arm holds five billets in pockets.
 
   Every pose in here is printed by tools/make_waypoints.py from
   lathe_arm_teach/cell.py. Change the geometry there, run that, and copy the
@@ -16,6 +16,13 @@
   The lathe's own frame has +x running back along the spindle away from the
   chuck, and +y pointing away from the column, so the chuck sits at -x and the
   billet slides in that way.
+
+  Heights: the boom pivot is at 1.50 m and the gripper hangs about 0.30 m
+  below the boom, so anything above 1.25 m where the arm swings across gets
+  hit. The loading side of the machine is cut to that height and everything
+  tall is behind the spindle or past the ends, which is why the arm goes in
+  over the front guard rather than through a door. A real cell would put a
+  taller gantry over the machine instead.
 
   The billet is a real body. The gripper holds it with a detachable joint
   (part_grasp drives it), and the chuck takes it with a second one, because
@@ -29,27 +36,34 @@
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
     <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors"><render_engine>ogre2</render_engine></plugin>
 
-    <scene><ambient>0.5 0.5 0.5 1</ambient><background>0.8 0.82 0.85 1</background></scene>
+    <scene><ambient>0.55 0.56 0.58 1</ambient><background>0.78 0.81 0.85 1</background></scene>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
-      <diffuse>0.9 0.9 0.9 1</diffuse>
-      <specular>0.2 0.2 0.2 1</specular>
+      <diffuse>0.85 0.85 0.85 1</diffuse>
+      <specular>0.25 0.25 0.25 1</specular>
       <direction>-0.4 0.3 -0.9</direction>
+    </light>
+    <light type="point" name="shop_fill">
+      <pose>1.2 -1.6 3.0 0 0 0</pose>
+      <diffuse>0.35 0.35 0.38 1</diffuse>
+      <specular>0.1 0.1 0.1 1</specular>
+      <attenuation><range>14</range><linear>0.12</linear><quadratic>0.01</quadratic></attenuation>
+      <cast_shadows>false</cast_shadows>
     </light>
 
     <model name="floor">
       <static>true</static>
       <link name="link">
-        <collision name="col"><geometry><plane><normal>0 0 1</normal><size>12 12</size></plane></geometry></collision>
-        <visual name="vis"><geometry><plane><normal>0 0 1</normal><size>12 12</size></plane></geometry>
-          <material><ambient>0.5 0.52 0.5 1</ambient><diffuse>0.5 0.52 0.5 1</diffuse></material></visual>
+        <collision name="col"><geometry><plane><normal>0 0 1</normal><size>16 16</size></plane></geometry></collision>
+        <visual name="vis"><geometry><plane><normal>0 0 1</normal><size>16 16</size></plane></geometry>
+          <material><ambient>0.46 0.47 0.47 1</ambient><diffuse>0.49 0.50 0.50 1</diffuse></material></visual>
         <!-- yellow safety line around the arm's swing -->
-        <visual name="line"><pose>0 0 0.001 0 0 0</pose><geometry><cylinder><radius>1.6</radius><length>0.001</length></cylinder></geometry>
-          <material><ambient>0.9 0.75 0.1 1</ambient><diffuse>0.9 0.75 0.1 1</diffuse></material></visual>
-        <visual name="line_inner"><pose>0 0 0.0015 0 0 0</pose><geometry><cylinder><radius>1.55</radius><length>0.001</length></cylinder></geometry>
-          <material><ambient>0.5 0.52 0.5 1</ambient><diffuse>0.5 0.52 0.5 1</diffuse></material></visual>
+        <visual name="line"><pose>0 0 0.001 0 0 0</pose><geometry><cylinder><radius>1.62</radius><length>0.001</length></cylinder></geometry>
+          <material><ambient>0.88 0.72 0.08 1</ambient><diffuse>0.92 0.76 0.10 1</diffuse></material></visual>
+        <visual name="line_inner"><pose>0 0 0.0015 0 0 0</pose><geometry><cylinder><radius>1.56</radius><length>0.001</length></cylinder></geometry>
+          <material><ambient>0.46 0.47 0.47 1</ambient><diffuse>0.49 0.50 0.50 1</diffuse></material></visual>
       </link>
     </model>
 
@@ -60,42 +74,44 @@
       <static>true</static>
       <pose>0.8615 -0.6032 0 0 0 -0.6109</pose>
       <link name="link">
-        <visual name="foot"><pose>0 0 0.01 0 0 0</pose><geometry><box><size>0.40 0.50 0.02</size></box></geometry>
-          <material><ambient>0.25 0.25 0.27 1</ambient><diffuse>0.25 0.25 0.27 1</diffuse></material></visual>
-        <visual name="post"><pose>0 0 0.41 0 0 0</pose><geometry><box><size>0.12 0.12 0.80</size></box></geometry>
-          <material><ambient>0.25 0.25 0.27 1</ambient><diffuse>0.25 0.25 0.27 1</diffuse></material></visual>
-        <collision name="post"><pose>0 0 0.41 0 0 0</pose><geometry><box><size>0.12 0.12 0.80</size></box></geometry></collision>
+        <visual name="foot"><pose>0 0 0.012 0 0 0</pose><geometry><box><size>0.40 0.50 0.024</size></box></geometry>
+          <material><ambient>0.22 0.23 0.25 1</ambient><diffuse>0.24 0.25 0.27 1</diffuse></material></visual>
+        <visual name="post"><pose>0 0 0.41 0 0 0</pose><geometry><box><size>0.11 0.11 0.80</size></box></geometry>
+          <material><ambient>0.22 0.23 0.25 1</ambient><diffuse>0.24 0.25 0.27 1</diffuse></material></visual>
+        <collision name="post"><pose>0 0 0.41 0 0 0</pose><geometry><box><size>0.11 0.11 0.80</size></box></geometry></collision>
+        <visual name="brace_a"><pose>0 0 0.80 0 0 0</pose><geometry><box><size>0.30 0.44 0.02</size></box></geometry>
+          <material><ambient>0.22 0.23 0.25 1</ambient><diffuse>0.24 0.25 0.27 1</diffuse></material></visual>
 
         <!-- tray plate, top at 0.832 -->
         <visual name="plate"><pose>0 0 0.8195 0 0 0</pose><geometry><box><size>0.28 0.42 0.025</size></box></geometry>
-          <material><ambient>0.2 0.35 0.6 1</ambient><diffuse>0.22 0.38 0.65 1</diffuse></material></visual>
+          <material><ambient>0.13 0.33 0.56 1</ambient><diffuse>0.15 0.38 0.63 1</diffuse></material></visual>
         <collision name="plate"><pose>0 0 0.8195 0 0 0</pose><geometry><box><size>0.28 0.42 0.025</size></box></geometry></collision>
 
         <!-- rails between the pockets -->
         <visual name="rail_1"><pose>0 -0.175 0.842 0 0 0</pose><geometry><box><size>0.26 0.010 0.020</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
         <visual name="rail_2"><pose>0 -0.105 0.842 0 0 0</pose><geometry><box><size>0.26 0.010 0.020</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
         <visual name="rail_3"><pose>0 -0.035 0.842 0 0 0</pose><geometry><box><size>0.26 0.010 0.020</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
         <visual name="rail_4"><pose>0 0.035 0.842 0 0 0</pose><geometry><box><size>0.26 0.010 0.020</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
         <visual name="rail_5"><pose>0 0.105 0.842 0 0 0</pose><geometry><box><size>0.26 0.010 0.020</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
         <visual name="rail_6"><pose>0 0.175 0.842 0 0 0</pose><geometry><box><size>0.26 0.010 0.020</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
         <visual name="end_stop"><pose>-0.135 0 0.850 0 0 0</pose><geometry><box><size>0.012 0.40 0.036</size></box></geometry>
-          <material><ambient>0.15 0.25 0.45 1</ambient><diffuse>0.15 0.25 0.45 1</diffuse></material></visual>
+          <material><ambient>0.09 0.23 0.40 1</ambient><diffuse>0.10 0.26 0.45 1</diffuse></material></visual>
 
         <!-- the four billets the arm is not picking this cycle -->
         <visual name="billet_a"><pose>0 -0.14 0.857 0 1.5708 0</pose><geometry><cylinder><radius>0.025</radius><length>0.10</length></cylinder></geometry>
-          <material><ambient>0.7 0.7 0.72 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+          <material><ambient>0.62 0.63 0.66 1</ambient><diffuse>0.74 0.75 0.78 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
         <visual name="billet_b"><pose>0 -0.07 0.857 0 1.5708 0</pose><geometry><cylinder><radius>0.025</radius><length>0.10</length></cylinder></geometry>
-          <material><ambient>0.7 0.7 0.72 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+          <material><ambient>0.62 0.63 0.66 1</ambient><diffuse>0.74 0.75 0.78 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
         <visual name="billet_c"><pose>0 0.07 0.857 0 1.5708 0</pose><geometry><cylinder><radius>0.025</radius><length>0.10</length></cylinder></geometry>
-          <material><ambient>0.7 0.7 0.72 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+          <material><ambient>0.62 0.63 0.66 1</ambient><diffuse>0.74 0.75 0.78 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
         <visual name="billet_d"><pose>0 0.14 0.857 0 1.5708 0</pose><geometry><cylinder><radius>0.025</radius><length>0.10</length></cylinder></geometry>
-          <material><ambient>0.7 0.7 0.72 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+          <material><ambient>0.62 0.63 0.66 1</ambient><diffuse>0.74 0.75 0.78 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
       </link>
     </model>
 
@@ -106,62 +122,175 @@
         <inertial><mass>0.3</mass><inertia><ixx>0.0003</ixx><iyy>0.0003</iyy><izz>0.0001</izz></inertia></inertial>
         <collision name="col"><geometry><cylinder><radius>0.025</radius><length>0.10</length></cylinder></geometry></collision>
         <visual name="vis"><geometry><cylinder><radius>0.025</radius><length>0.10</length></cylinder></geometry>
-          <material><ambient>0.7 0.7 0.72 1</ambient><diffuse>0.75 0.75 0.78 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+          <material><ambient>0.62 0.63 0.66 1</ambient><diffuse>0.74 0.75 0.78 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
       </link>
     </model>
 
-    <!-- Horizontal CNC lathe. Open on the top and on the arm's side so the
-         gripper can come down between the chuck and the tailstock. A real one
-         has a door and a roof hatch; this is the shape, not the machine. -->
+    <!-- CNC turning centre: 2.05 m long, 1.40 m deep, sheet metal over a cast
+         base, slant bed, 8-station turret, tailstock, chip conveyor, swing-arm
+         control panel and a status light. Front guard stops at 1.25 m so the
+         arm can reach over it; everything taller sits behind the spindle or
+         past the ends, out of the arm's swing. -->
     <model name="lathe">
       <static>true</static>
       <pose>0.6342 0.9058 0 0 0 -0.6109</pose>
       <link name="link">
-        <visual name="cabinet"><pose>0.15 0.02 0.40 0 0 0</pose><geometry><box><size>1.34 0.88 0.80</size></box></geometry>
-          <material><ambient>0.30 0.32 0.35 1</ambient><diffuse>0.33 0.35 0.38 1</diffuse></material></visual>
-        <collision name="cabinet"><pose>0.15 0.02 0.40 0 0 0</pose><geometry><box><size>1.34 0.88 0.80</size></box></geometry></collision>
+        <!-- levelling feet and plinth -->
+        <visual name="foot_a"><pose>-0.68 -0.32 0.035 0 0 0</pose><geometry><box><size>0.14 0.14 0.07</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.14 0.14 0.15 1</diffuse></material></visual>
+        <visual name="foot_b"><pose>-0.68 0.82 0.035 0 0 0</pose><geometry><box><size>0.14 0.14 0.07</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.14 0.14 0.15 1</diffuse></material></visual>
+        <visual name="foot_c"><pose>1.13 -0.32 0.035 0 0 0</pose><geometry><box><size>0.14 0.14 0.07</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.14 0.14 0.15 1</diffuse></material></visual>
+        <visual name="foot_d"><pose>1.13 0.82 0.035 0 0 0</pose><geometry><box><size>0.14 0.14 0.07</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.14 0.14 0.15 1</diffuse></material></visual>
+        <visual name="plinth"><pose>0.225 0.25 0.105 0 0 0</pose><geometry><box><size>2.01 1.36 0.07</size></box></geometry>
+          <material><ambient>0.16 0.17 0.18 1</ambient><diffuse>0.18 0.19 0.20 1</diffuse></material></visual>
 
-        <!-- slant bed behind the spindle line -->
-        <visual name="bed"><pose>0.15 0.26 0.86 -0.35 0 0</pose><geometry><box><size>1.34 0.42 0.10</size></box></geometry>
-          <material><ambient>0.46 0.48 0.51 1</ambient><diffuse>0.50 0.52 0.55 1</diffuse></material></visual>
+        <!-- cast base and sheet metal lower body -->
+        <visual name="base"><pose>0.225 0.25 0.49 0 0 0</pose><geometry><box><size>2.05 1.40 0.70</size></box></geometry>
+          <material><ambient>0.60 0.61 0.62 1</ambient><diffuse>0.72 0.73 0.74 1</diffuse></material></visual>
+        <collision name="base"><pose>0.225 0.25 0.47 0 0 0</pose><geometry><box><size>2.05 1.40 0.76</size></box></geometry></collision>
+        <visual name="base_skirt"><pose>0.225 -0.455 0.30 0 0 0</pose><geometry><box><size>2.03 0.02 0.32</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="brand_stripe"><pose>0.225 -0.458 0.70 0 0 0</pose><geometry><box><size>2.03 0.02 0.09</size></box></geometry>
+          <material><ambient>0.07 0.26 0.47 1</ambient><diffuse>0.09 0.32 0.57 1</diffuse></material></visual>
+        <visual name="nameplate"><pose>-0.45 -0.462 0.70 0 0 0</pose><geometry><box><size>0.42 0.014 0.065</size></box></geometry>
+          <material><ambient>0.85 0.86 0.88 1</ambient><diffuse>0.90 0.91 0.93 1</diffuse></material></visual>
 
-        <!-- headstock, spindle centreline at z 1.026 -->
-        <visual name="headstock"><pose>-0.325 0 1.03 0 0 0</pose><geometry><box><size>0.27 0.52 0.38</size></box></geometry>
-          <material><ambient>0.46 0.48 0.51 1</ambient><diffuse>0.50 0.52 0.56 1</diffuse></material></visual>
-        <visual name="spindle_nose"><pose>-0.21 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.075</radius><length>0.06</length></cylinder></geometry>
-          <material><ambient>0.25 0.25 0.27 1</ambient><diffuse>0.25 0.25 0.27 1</diffuse></material></visual>
+        <!-- left tower: headstock end, spindle drive and electrical cabinet -->
+        <visual name="left_tower"><pose>-0.525 0.25 1.40 0 0 0</pose><geometry><box><size>0.55 1.40 1.10</size></box></geometry>
+          <material><ambient>0.60 0.61 0.62 1</ambient><diffuse>0.72 0.73 0.74 1</diffuse></material></visual>
+        <visual name="left_tower_face"><pose>-0.525 -0.455 1.40 0 0 0</pose><geometry><box><size>0.50 0.02 1.00</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="left_tower_vent"><pose>-0.525 -0.466 1.62 0 0 0</pose><geometry><box><size>0.34 0.012 0.30</size></box></geometry>
+          <material><ambient>0.10 0.11 0.12 1</ambient><diffuse>0.11 0.12 0.13 1</diffuse></material></visual>
+        <visual name="left_tower_cap"><pose>-0.525 0.25 1.965 0 0 0</pose><geometry><box><size>0.58 1.43 0.03</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
 
-        <!-- turret on the far side, tool pointing at the spindle line -->
-        <visual name="saddle"><pose>0.26 0.34 0.95 0 0 0</pose><geometry><box><size>0.30 0.26 0.30</size></box></geometry>
-          <material><ambient>0.46 0.48 0.51 1</ambient><diffuse>0.50 0.52 0.55 1</diffuse></material></visual>
-        <visual name="turret"><pose>0.20 0.26 1.12 0 0 0</pose><geometry><cylinder><radius>0.11</radius><length>0.14</length></cylinder></geometry>
-          <material><ambient>0.25 0.27 0.30 1</ambient><diffuse>0.27 0.29 0.32 1</diffuse></material></visual>
-        <visual name="tool"><pose>0.20 0.16 1.055 1.5708 0 0</pose><geometry><box><size>0.025 0.025 0.11</size></box></geometry>
-          <material><ambient>0.12 0.12 0.12 1</ambient><diffuse>0.12 0.12 0.12 1</diffuse></material></visual>
+        <!-- rear enclosure over the slant bed -->
+        <visual name="back"><pose>0.375 0.55 1.40 0 0 0</pose><geometry><box><size>1.25 0.80 1.10</size></box></geometry>
+          <material><ambient>0.60 0.61 0.62 1</ambient><diffuse>0.72 0.73 0.74 1</diffuse></material></visual>
+        <visual name="back_cap"><pose>0.375 0.55 1.965 0 0 0</pose><geometry><box><size>1.28 0.83 0.03</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="back_stripe"><pose>0.375 0.14 1.78 0 0 0</pose><geometry><box><size>1.22 0.02 0.08</size></box></geometry>
+          <material><ambient>0.07 0.26 0.47 1</ambient><diffuse>0.09 0.32 0.57 1</diffuse></material></visual>
+
+        <!-- right tower: tailstock end and the panel mount -->
+        <visual name="right_tower"><pose>1.125 0.25 1.325 0 0 0</pose><geometry><box><size>0.25 1.40 0.95</size></box></geometry>
+          <material><ambient>0.60 0.61 0.62 1</ambient><diffuse>0.72 0.73 0.74 1</diffuse></material></visual>
+        <visual name="right_tower_cap"><pose>1.125 0.25 1.815 0 0 0</pose><geometry><box><size>0.28 1.43 0.03</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+
+        <!-- front guard of the work zone, with a window to see the chuck.
+             Open above 1.25 m: that is the loading side. -->
+        <visual name="guard_sill"><pose>0.375 -0.44 0.885 0 0 0</pose><geometry><box><size>1.25 0.03 0.07</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="guard_post_l"><pose>-0.215 -0.44 1.0415 0 0 0</pose><geometry><box><size>0.07 0.03 0.383</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="guard_post_r"><pose>0.965 -0.44 1.0415 0 0 0</pose><geometry><box><size>0.07 0.03 0.383</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="window"><pose>0.375 -0.44 1.055 0 0 0</pose><geometry><box><size>1.11 0.012 0.32</size></box></geometry>
+          <transparency>0.62</transparency>
+          <material><ambient>0.10 0.15 0.17 1</ambient><diffuse>0.13 0.19 0.22 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+        <visual name="guard_rail"><pose>0.375 -0.442 1.233 0 0 0</pose><geometry><box><size>1.27 0.05 0.036</size></box></geometry>
+          <material><ambient>0.80 0.64 0.06 1</ambient><diffuse>0.88 0.70 0.07 1</diffuse></material></visual>
+        <visual name="guard_rail_mark_a"><pose>-0.03 -0.444 1.233 0 0 0</pose><geometry><box><size>0.10 0.052 0.037</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.13 0.13 0.14 1</diffuse></material></visual>
+        <visual name="guard_rail_mark_b"><pose>0.37 -0.444 1.233 0 0 0</pose><geometry><box><size>0.10 0.052 0.037</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.13 0.13 0.14 1</diffuse></material></visual>
+        <visual name="guard_rail_mark_c"><pose>0.77 -0.444 1.233 0 0 0</pose><geometry><box><size>0.10 0.052 0.037</size></box></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.13 0.13 0.14 1</diffuse></material></visual>
+
+        <!-- sliding door, parked open past the headstock end -->
+        <visual name="door_rail"><pose>-0.90 -0.50 1.265 0 0 0</pose><geometry><box><size>1.40 0.05 0.045</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="door_post"><pose>-1.50 -0.50 0.64 0 0 0</pose><geometry><box><size>0.07 0.07 1.28</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="door_panel"><pose>-1.17 -0.50 1.07 0 0 0</pose><geometry><box><size>0.70 0.035 0.42</size></box></geometry>
+          <material><ambient>0.60 0.61 0.62 1</ambient><diffuse>0.72 0.73 0.74 1</diffuse></material></visual>
+        <visual name="door_window"><pose>-1.17 -0.52 1.09 0 0 0</pose><geometry><box><size>0.52 0.012 0.26</size></box></geometry>
+          <transparency>0.62</transparency>
+          <material><ambient>0.10 0.15 0.17 1</ambient><diffuse>0.13 0.19 0.22 1</diffuse></material></visual>
+        <visual name="door_handle"><pose>-0.86 -0.53 1.07 0 1.5708 0</pose><geometry><cylinder><radius>0.018</radius><length>0.26</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.16 1</ambient><diffuse>0.17 0.17 0.18 1</diffuse></material></visual>
+
+        <!-- status light on top of the headstock tower -->
+        <visual name="light_post"><pose>-0.52 0.80 2.00 0 0 0</pose><geometry><cylinder><radius>0.018</radius><length>0.08</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.16 1</ambient><diffuse>0.17 0.17 0.18 1</diffuse></material></visual>
+        <visual name="light_red"><pose>-0.52 0.80 2.075 0 0 0</pose><geometry><cylinder><radius>0.045</radius><length>0.07</length></cylinder></geometry>
+          <material><ambient>0.35 0.05 0.04 1</ambient><diffuse>0.55 0.08 0.06 1</diffuse></material></visual>
+        <visual name="light_amber"><pose>-0.52 0.80 2.145 0 0 0</pose><geometry><cylinder><radius>0.045</radius><length>0.07</length></cylinder></geometry>
+          <material><ambient>0.45 0.30 0.02 1</ambient><diffuse>0.70 0.46 0.03 1</diffuse></material></visual>
+        <visual name="light_green"><pose>-0.52 0.80 2.215 0 0 0</pose><geometry><cylinder><radius>0.045</radius><length>0.07</length></cylinder></geometry>
+          <material><ambient>0.10 0.55 0.18 1</ambient><diffuse>0.14 0.80 0.25 1</diffuse><emissive>0.05 0.30 0.10 1</emissive></material></visual>
+        <visual name="light_cap"><pose>-0.52 0.80 2.258 0 0 0</pose><geometry><cylinder><radius>0.048</radius><length>0.016</length></cylinder></geometry>
+          <material><ambient>0.12 0.12 0.13 1</ambient><diffuse>0.13 0.13 0.14 1</diffuse></material></visual>
+
+        <!-- swing-arm control panel off the tailstock end -->
+        <visual name="panel_arm"><pose>1.33 -0.18 1.40 0 0 0</pose><geometry><box><size>0.26 0.07 0.07</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="panel_post"><pose>1.44 -0.18 1.20 0 0 0</pose><geometry><cylinder><radius>0.03</radius><length>0.42</length></cylinder></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="panel_body"><pose>1.47 -0.18 1.33 0 -0.28 0</pose><geometry><box><size>0.07 0.46 0.56</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="panel_screen"><pose>1.433 -0.18 1.43 0 -0.28 0</pose><geometry><box><size>0.012 0.34 0.23</size></box></geometry>
+          <material><ambient>0.06 0.22 0.17 1</ambient><diffuse>0.08 0.34 0.25 1</diffuse><emissive>0.05 0.22 0.16 1</emissive></material></visual>
+        <visual name="panel_keys"><pose>1.465 -0.18 1.19 0 -0.28 0</pose><geometry><box><size>0.012 0.34 0.16</size></box></geometry>
+          <material><ambient>0.30 0.31 0.33 1</ambient><diffuse>0.34 0.35 0.37 1</diffuse></material></visual>
+        <visual name="estop"><pose>1.445 -0.37 1.33 0 -0.28 0</pose><geometry><cylinder><radius>0.035</radius><length>0.04</length></cylinder></geometry>
+          <material><ambient>0.55 0.05 0.04 1</ambient><diffuse>0.80 0.07 0.05 1</diffuse></material></visual>
+
+        <!-- chip conveyor running out of the back left -->
+        <visual name="conveyor"><pose>-0.95 0.62 0.52 0 -0.42 0</pose><geometry><box><size>0.70 0.34 0.22</size></box></geometry>
+          <material><ambient>0.50 0.51 0.52 1</ambient><diffuse>0.58 0.59 0.60 1</diffuse></material></visual>
+        <visual name="conveyor_chute"><pose>-1.22 0.62 0.70 0 0 0</pose><geometry><box><size>0.22 0.36 0.16</size></box></geometry>
+          <material><ambient>0.17 0.18 0.19 1</ambient><diffuse>0.19 0.20 0.21 1</diffuse></material></visual>
+        <visual name="chip_bin"><pose>-1.32 0.62 0.22 0 0 0</pose><geometry><box><size>0.40 0.44 0.44</size></box></geometry>
+          <material><ambient>0.30 0.31 0.33 1</ambient><diffuse>0.34 0.35 0.37 1</diffuse></material></visual>
+
+        <!-- inside: slant bed, way covers, headstock, turret, tailstock -->
+        <visual name="slant_bed"><pose>0.225 0.33 1.03 -0.52 0 0</pose><geometry><box><size>1.92 0.80 0.07</size></box></geometry>
+          <material><ambient>0.40 0.41 0.43 1</ambient><diffuse>0.45 0.46 0.48 1</diffuse></material></visual>
+        <visual name="way_cover_a"><pose>0.52 0.27 1.06 -0.52 0 0</pose><geometry><box><size>0.42 0.56 0.05</size></box></geometry>
+          <material><ambient>0.52 0.53 0.55 1</ambient><diffuse>0.60 0.61 0.63 1</diffuse></material></visual>
+        <visual name="way_cover_b"><pose>0.04 0.27 1.07 -0.52 0 0</pose><geometry><box><size>0.40 0.54 0.06</size></box></geometry>
+          <material><ambient>0.46 0.47 0.49 1</ambient><diffuse>0.53 0.54 0.56 1</diffuse></material></visual>
+
+        <visual name="headstock"><pose>-0.485 0.04 1.06 0 0 0</pose><geometry><box><size>0.59 0.52 0.40</size></box></geometry>
+          <material><ambient>0.42 0.43 0.45 1</ambient><diffuse>0.48 0.49 0.51 1</diffuse></material></visual>
+        <visual name="headstock_ribs"><pose>-0.485 -0.23 1.06 0 0 0</pose><geometry><box><size>0.50 0.03 0.30</size></box></geometry>
+          <material><ambient>0.36 0.37 0.39 1</ambient><diffuse>0.41 0.42 0.44 1</diffuse></material></visual>
+        <visual name="spindle_nose"><pose>-0.21 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.085</radius><length>0.06</length></cylinder></geometry>
+          <material><ambient>0.48 0.49 0.51 1</ambient><diffuse>0.55 0.56 0.58 1</diffuse><specular>0.6 0.6 0.6 1</specular></material></visual>
+
+        <!-- 8-station turret behind the spindle line -->
+        <visual name="saddle"><pose>0.33 0.40 1.00 0 0 0</pose><geometry><box><size>0.42 0.34 0.30</size></box></geometry>
+          <material><ambient>0.42 0.43 0.45 1</ambient><diffuse>0.48 0.49 0.51 1</diffuse></material></visual>
+        <visual name="turret"><pose>0.30 0.27 1.14 0 1.5708 0</pose><geometry><cylinder><radius>0.145</radius><length>0.17</length></cylinder></geometry>
+          <material><ambient>0.38 0.39 0.41 1</ambient><diffuse>0.44 0.45 0.47 1</diffuse><specular>0.4 0.4 0.4 1</specular></material></visual>
+        <visual name="tool_1"><pose>0.30 0.145 1.055 0 0 0</pose><geometry><box><size>0.045 0.14 0.045</size></box></geometry>
+          <material><ambient>0.13 0.13 0.14 1</ambient><diffuse>0.15 0.15 0.16 1</diffuse></material></visual>
+        <visual name="tool_2"><pose>0.30 0.165 1.245 0.7 0 0</pose><geometry><box><size>0.045 0.13 0.045</size></box></geometry>
+          <material><ambient>0.13 0.13 0.14 1</ambient><diffuse>0.15 0.15 0.16 1</diffuse></material></visual>
+        <visual name="tool_3"><pose>0.30 0.40 1.26 -0.7 0 0</pose><geometry><box><size>0.045 0.13 0.045</size></box></geometry>
+          <material><ambient>0.13 0.13 0.14 1</ambient><diffuse>0.15 0.15 0.16 1</diffuse></material></visual>
+        <visual name="tool_4"><pose>0.30 0.41 1.035 0 0 0</pose><geometry><box><size>0.045 0.13 0.045</size></box></geometry>
+          <material><ambient>0.13 0.13 0.14 1</ambient><diffuse>0.15 0.15 0.16 1</diffuse></material></visual>
+        <visual name="coolant_pipe"><pose>0.16 0.21 1.19 0 0.9 0</pose><geometry><cylinder><radius>0.012</radius><length>0.30</length></cylinder></geometry>
+          <material><ambient>0.20 0.21 0.22 1</ambient><diffuse>0.23 0.24 0.25 1</diffuse></material></visual>
 
         <!-- tailstock -->
-        <visual name="tailstock"><pose>0.67 0 1.00 0 0 0</pose><geometry><box><size>0.22 0.32 0.32</size></box></geometry>
-          <material><ambient>0.46 0.48 0.51 1</ambient><diffuse>0.50 0.52 0.55 1</diffuse></material></visual>
-        <visual name="quill"><pose>0.50 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.035</radius><length>0.14</length></cylinder></geometry>
-          <material><ambient>0.6 0.6 0.62 1</ambient><diffuse>0.65 0.65 0.67 1</diffuse><specular>0.5 0.5 0.5 1</specular></material></visual>
-
-        <!-- splash guards: back and both ends, top and arm side left open -->
-        <visual name="guard_back"><pose>0.15 0.465 1.30 0 0 0</pose><geometry><box><size>1.42 0.03 1.00</size></box></geometry>
-          <material><ambient>0.80 0.82 0.84 1</ambient><diffuse>0.84 0.86 0.88 1</diffuse></material></visual>
-        <visual name="guard_left"><pose>-0.555 0.02 1.30 0 0 0</pose><geometry><box><size>0.03 0.88 1.00</size></box></geometry>
-          <material><ambient>0.80 0.82 0.84 1</ambient><diffuse>0.84 0.86 0.88 1</diffuse></material></visual>
-        <visual name="guard_right"><pose>0.855 0.02 1.30 0 0 0</pose><geometry><box><size>0.03 0.88 1.00</size></box></geometry>
-          <material><ambient>0.80 0.82 0.84 1</ambient><diffuse>0.84 0.86 0.88 1</diffuse></material></visual>
-        <visual name="stripe"><pose>0.15 -0.425 1.22 0 0 0</pose><geometry><box><size>1.34 0.02 0.05</size></box></geometry>
-          <material><ambient>0.9 0.55 0.1 1</ambient><diffuse>0.95 0.6 0.1 1</diffuse></material></visual>
-
-        <!-- operator panel on the right end -->
-        <visual name="panel_arm"><pose>0.90 -0.20 1.25 0 0 0</pose><geometry><box><size>0.10 0.06 0.06</size></box></geometry>
-          <material><ambient>0.25 0.25 0.27 1</ambient><diffuse>0.25 0.25 0.27 1</diffuse></material></visual>
-        <visual name="panel"><pose>0.98 -0.20 1.36 0 -0.25 0</pose><geometry><box><size>0.06 0.34 0.42</size></box></geometry>
-          <material><ambient>0.15 0.15 0.16 1</ambient><diffuse>0.15 0.15 0.16 1</diffuse></material></visual>
-        <visual name="screen"><pose>0.95 -0.20 1.42 0 -0.25 0</pose><geometry><box><size>0.01 0.24 0.18</size></box></geometry>
-          <material><ambient>0.1 0.35 0.25 1</ambient><diffuse>0.1 0.45 0.3 1</diffuse><emissive>0.05 0.2 0.15 1</emissive></material></visual>
+        <visual name="tailstock"><pose>0.75 0.02 1.04 0 0 0</pose><geometry><box><size>0.26 0.36 0.36</size></box></geometry>
+          <material><ambient>0.42 0.43 0.45 1</ambient><diffuse>0.48 0.49 0.51 1</diffuse></material></visual>
+        <visual name="tailstock_base"><pose>0.75 0.10 0.89 0 0 0</pose><geometry><box><size>0.34 0.50 0.08</size></box></geometry>
+          <material><ambient>0.36 0.37 0.39 1</ambient><diffuse>0.41 0.42 0.44 1</diffuse></material></visual>
+        <visual name="quill"><pose>0.54 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.038</radius><length>0.18</length></cylinder></geometry>
+          <material><ambient>0.58 0.59 0.61 1</ambient><diffuse>0.68 0.69 0.71 1</diffuse><specular>0.7 0.7 0.7 1</specular></material></visual>
+        <visual name="live_centre"><pose>0.43 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.018</radius><length>0.06</length></cylinder></geometry>
+          <material><ambient>0.45 0.46 0.48 1</ambient><diffuse>0.55 0.56 0.58 1</diffuse><specular>0.8 0.8 0.8 1</specular></material></visual>
+        <visual name="tailstock_wheel"><pose>0.90 0 1.04 0 1.5708 0</pose><geometry><cylinder><radius>0.07</radius><length>0.03</length></cylinder></geometry>
+          <material><ambient>0.15 0.15 0.16 1</ambient><diffuse>0.17 0.17 0.18 1</diffuse></material></visual>
       </link>
     </model>
 
@@ -173,14 +302,23 @@
       <pose>0.6342 0.9058 0 0 0 -0.6109</pose>
       <link name="link">
         <inertial><mass>40.0</mass><inertia><ixx>1.0</ixx><iyy>1.0</iyy><izz>1.0</izz></inertia></inertial>
-        <visual name="body"><pose>-0.100 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.105</radius><length>0.18</length></cylinder></geometry>
-          <material><ambient>0.52 0.53 0.56 1</ambient><diffuse>0.60 0.61 0.64 1</diffuse><specular>0.7 0.7 0.7 1</specular></material></visual>
-        <visual name="jaw_top"><pose>-0.030 0 1.088 0 0 0</pose><geometry><box><size>0.06 0.05 0.035</size></box></geometry>
-          <material><ambient>0.12 0.12 0.12 1</ambient><diffuse>0.14 0.14 0.14 1</diffuse></material></visual>
-        <visual name="jaw_left"><pose>-0.030 -0.0537 0.995 1.0472 0 0</pose><geometry><box><size>0.06 0.05 0.035</size></box></geometry>
-          <material><ambient>0.12 0.12 0.12 1</ambient><diffuse>0.14 0.14 0.14 1</diffuse></material></visual>
-        <visual name="jaw_right"><pose>-0.030 0.0537 0.995 -1.0472 0 0</pose><geometry><box><size>0.06 0.05 0.035</size></box></geometry>
-          <material><ambient>0.12 0.12 0.12 1</ambient><diffuse>0.14 0.14 0.14 1</diffuse></material></visual>
+        <visual name="body"><pose>-0.110 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.115</radius><length>0.16</length></cylinder></geometry>
+          <material><ambient>0.44 0.45 0.47 1</ambient><diffuse>0.56 0.57 0.59 1</diffuse><specular>0.75 0.75 0.75 1</specular></material></visual>
+        <visual name="face"><pose>-0.022 0 1.026 0 1.5708 0</pose><geometry><cylinder><radius>0.118</radius><length>0.024</length></cylinder></geometry>
+          <material><ambient>0.38 0.39 0.41 1</ambient><diffuse>0.48 0.49 0.51 1</diffuse><specular>0.7 0.7 0.7 1</specular></material></visual>
+        <!-- three stepped hard jaws, 120 deg apart -->
+        <visual name="jaw_base_top"><pose>-0.030 0 1.098 0 0 0</pose><geometry><box><size>0.055 0.072 0.052</size></box></geometry>
+          <material><ambient>0.26 0.27 0.29 1</ambient><diffuse>0.31 0.32 0.34 1</diffuse></material></visual>
+        <visual name="jaw_top"><pose>-0.018 0 1.072 0 0 0</pose><geometry><box><size>0.036 0.056 0.034</size></box></geometry>
+          <material><ambient>0.14 0.14 0.15 1</ambient><diffuse>0.17 0.17 0.18 1</diffuse></material></visual>
+        <visual name="jaw_base_left"><pose>-0.030 -0.0624 0.990 1.0472 0 0</pose><geometry><box><size>0.055 0.072 0.052</size></box></geometry>
+          <material><ambient>0.26 0.27 0.29 1</ambient><diffuse>0.31 0.32 0.34 1</diffuse></material></visual>
+        <visual name="jaw_left"><pose>-0.018 -0.0469 1.003 1.0472 0 0</pose><geometry><box><size>0.036 0.056 0.034</size></box></geometry>
+          <material><ambient>0.14 0.14 0.15 1</ambient><diffuse>0.17 0.17 0.18 1</diffuse></material></visual>
+        <visual name="jaw_base_right"><pose>-0.030 0.0624 0.990 -1.0472 0 0</pose><geometry><box><size>0.055 0.072 0.052</size></box></geometry>
+          <material><ambient>0.26 0.27 0.29 1</ambient><diffuse>0.31 0.32 0.34 1</diffuse></material></visual>
+        <visual name="jaw_right"><pose>-0.018 0.0469 1.003 -1.0472 0 0</pose><geometry><box><size>0.036 0.056 0.034</size></box></geometry>
+          <material><ambient>0.14 0.14 0.15 1</ambient><diffuse>0.17 0.17 0.18 1</diffuse></material></visual>
       </link>
       <joint name="anchor" type="fixed">
         <parent>world</parent>
@@ -196,22 +334,51 @@
       </plugin>
     </model>
 
-    <!-- Recording camera. It has to look into the open side of the machine,
-         which faces the column, and square on to that puts the column right in
-         front of the chuck. This is offset towards the tailstock end: far
-         enough round to see past the column, near enough to see down the
-         spindle, and it catches the tray as well. -->
+    <!-- Four cameras for the showcase video. Wide for the cell, machine for
+         the lathe on its own, pick for the tray, closeup for the chuck. -->
     <model name="cell_camera">
       <static>true</static>
-      <pose>0.002 -3.246 2.60 0 0.354 1.419</pose>
+      <pose>-0.089 -3.839 2.75 0 0.331 1.420</pose>
       <link name="link">
         <sensor name="cell_cam" type="camera">
-          <update_rate>15</update_rate>
+          <update_rate>10</update_rate>
           <topic>/cell/image</topic>
           <camera>
-            <horizontal_fov>0.95</horizontal_fov>
+            <horizontal_fov>1.0</horizontal_fov>
             <image><width>960</width><height>640</height><format>R8G8B8</format></image>
-            <clip><near>0.05</near><far>30</far></clip>
+            <clip><near>0.05</near><far>40</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="machine_camera">
+      <static>true</static>
+      <pose>1.404 -4.284 2.10 0 0.196 1.658</pose>
+      <link name="link">
+        <sensor name="machine_cam" type="camera">
+          <update_rate>10</update_rate>
+          <topic>/cell/machine</topic>
+          <camera>
+            <horizontal_fov>0.70</horizontal_fov>
+            <image><width>960</width><height>640</height><format>R8G8B8</format></image>
+            <clip><near>0.05</near><far>40</far></clip>
+          </camera>
+        </sensor>
+      </link>
+    </model>
+
+    <model name="pick_camera">
+      <static>true</static>
+      <pose>1.95 -1.70 1.35 0 0.295 2.354</pose>
+      <link name="link">
+        <sensor name="pick_cam" type="camera">
+          <update_rate>10</update_rate>
+          <topic>/cell/pick</topic>
+          <camera>
+            <horizontal_fov>0.70</horizontal_fov>
+            <image><width>960</width><height>640</height><format>R8G8B8</format></image>
+            <clip><near>0.05</near><far>40</far></clip>
           </camera>
         </sensor>
       </link>
@@ -222,15 +389,15 @@
          ends up too far away to see the billet go in. -->
     <model name="chuck_camera">
       <static>true</static>
-      <pose>1.158 0.172 1.35 0 0.314 2.223</pose>
+      <pose>1.182 0.033 1.40 0 0.331 2.150</pose>
       <link name="link">
         <sensor name="chuck_cam" type="camera">
-          <update_rate>15</update_rate>
+          <update_rate>10</update_rate>
           <topic>/cell/closeup</topic>
           <camera>
-            <horizontal_fov>0.8</horizontal_fov>
+            <horizontal_fov>0.85</horizontal_fov>
             <image><width>960</width><height>640</height><format>R8G8B8</format></image>
-            <clip><near>0.05</near><far>30</far></clip>
+            <clip><near>0.05</near><far>40</far></clip>
           </camera>
         </sensor>
       </link>
