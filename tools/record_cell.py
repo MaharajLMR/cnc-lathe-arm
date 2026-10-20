@@ -21,7 +21,12 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from std_msgs.msg import String
 
-CAMERAS = {"wide": "/cell/image", "closeup": "/cell/closeup"}
+CAMERAS = {
+    "wide": "/cell/image",          # the whole cell: arm, tray, machine
+    "machine": "/cell/machine",     # the lathe on its own
+    "pick": "/cell/pick",           # the tray, close
+    "closeup": "/cell/closeup",     # the chuck, from inside the guards
+}
 
 
 class Recorder(Node):
@@ -44,7 +49,9 @@ class Recorder(Node):
 
     def on_image(self, msg: Image, cam: str) -> None:
         self.n_seen[cam] += 1
-        if self.n_seen[cam] % self.every:
+        # the machine shot is a still of the lathe, it does not need every frame
+        every = self.every * 3 if cam == "machine" else self.every
+        if self.n_seen[cam] % every:
             return
         img = np.frombuffer(msg.data, np.uint8).reshape(msg.height, msg.width, 3)
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)

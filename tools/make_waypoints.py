@@ -45,8 +45,12 @@ def cycle():
     flat, roll = 0.0, cell.ROLL_FOR_CHUCK
     home = [0.0, 0.1745, -0.1745, 0.0, o]
 
+    carry_z = cell.CHUCK_TIP_Z + cell.CLEAR
     over_tray = cell.level_point(cell.TRAY_YAW, cell.PICK_TIP_Z + cell.LIFT)
-    over_machine = cell.level_point(cell.LINEUP_YAW, cell.CHUCK_TIP_Z + cell.CLEAR)
+    # the swing across happens at one height, so the billet clears the front of
+    # the machine the whole way instead of only at the end of the move
+    raised = cell.level_point(cell.TRAY_YAW, carry_z)
+    over_machine = cell.level_point(cell.LINEUP_YAW, carry_z)
 
     return [
         ("home", home),
@@ -56,6 +60,7 @@ def cycle():
         ("lift", solve(over_tray, flat, c, "lift")),
         # a quarter turn of the wrist puts the billet along the spindle
         ("turn_to_spindle", solve(over_tray, roll, c, "turn_to_spindle")),
+        ("raise_to_clear", solve(raised, roll, c, "raise_to_clear")),
         ("over_machine", solve(over_machine, roll, c, "over_machine")),
         ("on_spindle_axis", solve(cell.LINEUP, roll, c, "on_spindle_axis")),
         ("into_chuck", solve(cell.CHUCK, roll, c, "into_chuck")),
