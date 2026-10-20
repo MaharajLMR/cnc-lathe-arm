@@ -1,5 +1,7 @@
 # cnc-lathe-arm
 
+[![CI](https://github.com/MaharajLMR/cnc-lathe-arm/actions/workflows/ci.yml/badge.svg)](https://github.com/MaharajLMR/cnc-lathe-arm/actions/workflows/ci.yml)
+
 A 5-axis jib arm that picks a part off a stand and puts it in a lathe chuck, rebuilt in ROS 2 Jazzy and Gazebo Harmonic.
 
 This is a rebuild of the robot my team made for the DriveNext RANE SLD Hackathon 2026, where we came 1st runner-up. It is not the hackathon code. I wrote this repo afterwards from the photo and the few dimensions I know, so the arm can be moved and tested in simulation.
