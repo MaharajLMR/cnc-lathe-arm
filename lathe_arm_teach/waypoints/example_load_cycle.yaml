@@ -1,28 +1,34 @@
-# Load one part into the lathe chuck.
+# Load one billet from the job tray into the lathe chuck.
 # Joints: base yaw, boom lift, wrist pitch, wrist roll (rad), gripper (m per finger).
-# Wrist pitch = -boom keeps the gripper hanging straight down.
-# Gripper 0.030 = open, 0.0215 = closed on the 50 mm part.
+# Gripper 0.03 = open, 0.0215 = closed on the 50 mm billet.
+#
+# Written by tools/make_waypoints.py from lathe_arm_teach/cell.py. Do not
+# edit by hand: change the cell geometry and run it again.
 
 waypoints:
   - name: home
-    joints: [0.0, 0.1745, -0.1745, 0.0, 0.030]
-  - name: above_part
-    joints: [-0.6109, -0.2094, 0.2094, 0.0, 0.030]
-  - name: at_part
-    joints: [-0.6109, -0.4189, 0.4189, 0.0, 0.030]
+    joints: [0.0000, 0.1745, -0.1745, 0.0000, 0.0300]
+  - name: above_billet
+    joints: [-0.6109, -0.1891, 0.1891, 0.0000, 0.0300]
+  - name: at_billet
+    joints: [-0.6109, -0.3985, 0.3985, 0.0000, 0.0300]
   - name: grip
-    joints: [-0.6109, -0.4189, 0.4189, 0.0, 0.0215]
+    joints: [-0.6109, -0.3985, 0.3985, 0.0000, 0.0215]
   - name: lift
-    joints: [-0.6109, -0.0873, 0.0873, 0.0, 0.0215]
-  - name: swing_to_lathe
-    joints: [0.9599, -0.0873, 0.0873, 0.0, 0.0215]
-  - name: above_chuck
-    joints: [0.9599, -0.1396, 0.1396, 0.0, 0.0215]
-  - name: at_chuck
-    joints: [0.9599, -0.3491, 0.3491, 0.0, 0.0215]
+    joints: [-0.6109, -0.1891, 0.1891, 0.0000, 0.0215]
+  - name: turn_to_spindle
+    joints: [-0.6109, -0.1891, 0.1891, 1.5707, 0.0215]
+  - name: over_machine
+    joints: [0.8429, 0.0410, -0.0410, 1.5707, 0.0215]
+  - name: on_spindle_axis
+    joints: [0.8429, -0.2209, 0.2464, 1.5707, 0.0215]
+  - name: into_chuck
+    joints: [0.9599, -0.2208, 0.2208, 1.5707, 0.0215]
   - name: release
-    joints: [0.9599, -0.3491, 0.3491, 0.0, 0.030]
-  - name: clear
-    joints: [0.9599, -0.1396, 0.1396, 0.0, 0.030]
+    joints: [0.9599, -0.2208, 0.2208, 1.5707, 0.0300]
+  - name: withdraw
+    joints: [0.8429, -0.2209, 0.2464, 1.5707, 0.0300]
+  - name: clear_machine
+    joints: [0.8429, 0.0410, -0.0410, 1.5707, 0.0300]
   - name: home
-    joints: [0.0, 0.1745, -0.1745, 0.0, 0.030]
+    joints: [0.0000, 0.1745, -0.1745, 0.0000, 0.0300]
