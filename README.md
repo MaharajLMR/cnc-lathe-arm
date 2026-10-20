@@ -6,6 +6,8 @@ This is a rebuild of the robot my team made for the DriveNext RANE SLD Hackathon
 
 ![the RANE robot](media/rane/rane_arm.jpg)
 
+Someone was sitting behind the arm when I took this, so that part is blurred.
+
 The real robot was a jib crane style arm. A black base plate with a slewing bearing turned a yellow steel column. A yellow boom was lifted by a silver linear actuator, and at the tip there was a wrist servo and a blue two-finger gripper. Every axis was driven from a potentiometer knob. A Raspberry Pi 5 read the knobs and also served a web page (the HMI).
 
 ![load cycle](docs/load_cycle_gazebo.gif)
