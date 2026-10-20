@@ -50,8 +50,13 @@ def generate_launch_description():
         Node(package="ros_gz_bridge", executable="parameter_bridge",
              arguments=["/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
                         "/cell/image@sensor_msgs/msg/Image[gz.msgs.Image",
+                        "/cell/closeup@sensor_msgs/msg/Image[gz.msgs.Image",
                         "/part/attach@std_msgs/msg/Empty]gz.msgs.Empty",
-                        "/part/detach@std_msgs/msg/Empty]gz.msgs.Empty"]),
+                        "/part/detach@std_msgs/msg/Empty]gz.msgs.Empty",
+                        # the chuck's own detachable joint, so the billet stays
+                        # put after the fingers open on a horizontal spindle
+                        "/chuck/attach@std_msgs/msg/Empty]gz.msgs.Empty",
+                        "/chuck/detach@std_msgs/msg/Empty]gz.msgs.Empty"]),
         TimerAction(period=3.0, actions=[
             Node(package="controller_manager", executable="spawner",
                  arguments=["joint_state_broadcaster", "arm_controller", "gripper_controller",
